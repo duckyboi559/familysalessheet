@@ -812,6 +812,93 @@ function checkoutSplitCustom() {
   const digital = Number((total - cash).toFixed(2));
   finalizeCheckout(Number(cash.toFixed(2)), digital, "Split Custom");
 }
+function saveDay() {
+  const totalToday = state.cashTotal + state.digitalTotal;
+
+  if (totalToday === 0 && state.paidOrders.length === 0) {
+    alert("Nothing to save yet.");
+    return;
+  }
+
+  if (!state.savedDays) {
+    state.savedDays = [];
+  }
+
+  state.savedDays.push({
+    date: new Date().toLocaleDateString(),
+    adrian: state.ownerTotals.adrian,
+    nana: state.ownerTotals.nana,
+    mom: state.ownerTotals.mom,
+    cash: state.cashTotal,
+    digital: state.digitalTotal,
+    total: totalToday,
+    ordersCount: state.paidOrders.length
+  });
+
+  state.orderItems = [];
+  state.ownerTotals = { adrian: 0, nana: 0, mom: 0 };
+  state.cashTotal = 0;
+  state.digitalTotal = 0;
+  state.paidOrders = [];
+  state.nextOrderNumber = 1;
+
+  saveState();
+  updateUI();
+  renderSavedDays();
+
+  alert("Day saved.");
+}
+
+function resetDay() {
+  const hasAnything =
+    state.orderItems.length > 0 ||
+    state.paidOrders.length > 0 ||
+    state.cashTotal > 0 ||
+    state.digitalTotal > 0;
+
+  if (!hasAnything) {
+    alert("Nothing to reset.");
+    return;
+  }
+
+  const confirmReset = confirm("Reset today without saving?");
+  if (!confirmReset) return;
+
+  state.orderItems = [];
+  state.ownerTotals = { adrian: 0, nana: 0, mom: 0 };
+  state.cashTotal = 0;
+  state.digitalTotal = 0;
+  state.paidOrders = [];
+  state.nextOrderNumber = 1;
+
+  saveState();
+  updateUI();
+
+  alert("Day reset.");
+}
+
+function renderSavedDays() {
+  const box = document.getElementById("previousDays");
+  if (!box) return;
+
+  if (!state.savedDays || !state.savedDays.length) {
+    box.innerHTML = "<p>No saved days yet.</p>";
+    return;
+  }
+
+  box.innerHTML = [...state.savedDays].reverse().map(day => `
+    <div class="paid-order">
+      <h4>${day.date}</h4>
+      <p><strong>Adrian:</strong> ${formatMoney(day.adrian)}</p>
+      <p><strong>Nana:</strong> ${formatMoney(day.nana)}</p>
+      <p><strong>Mom:</strong> ${formatMoney(day.mom)}</p>
+      <p><strong>Cash:</strong> ${formatMoney(day.cash)}</p>
+      <p><strong>Digital:</strong> ${formatMoney(day.digital)}</p>
+      <p><strong>Total:</strong> ${formatMoney(day.total)}</p>
+      <p><strong>Orders:</strong> ${day.ordersCount}</p>
+    </div>
+  `).join("");
+}
 
 renderBuilder();
 renderReview();
