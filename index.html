@@ -10,7 +10,7 @@
   <div class="app">
     <header class="hero">
       <h1>Family POS</h1>
-      <p class="subtitle">Take the whole order here, then choose payment</p>
+      <p class="subtitle">Tap items, then choose payment</p>
     </header>
 
     <section class="section-card">
@@ -65,6 +65,16 @@
           <h3>Flavor +$1</h3>
           <p>$1</p>
         </button>
+
+        <button class="tile addon-tile" onclick="addItem('lemonadeBobaAdd', this)">
+          <h3>Boba +$1</h3>
+          <p>$1</p>
+        </button>
+
+        <button class="tile addon-tile" onclick="addItem('lemonadeCreamyAdd', this)">
+          <h3>Creamy +$1</h3>
+          <p>$1</p>
+        </button>
       </div>
     </section>
 
@@ -102,12 +112,37 @@
         </button>
 
         <button class="tile pancake-tile" onclick="addItem('biteSize', this)">
-          <h3>Bite Size</h3>
+          <h3>Bite Stack</h3>
           <p>$5</p>
         </button>
 
         <button class="tile pancake-tile" onclick="addItem('dubaiStrawberries', this)">
           <h3>Dubai Strawberries</h3>
+          <p>$12</p>
+        </button>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h2 class="section-title">Combos</h2>
+      <div class="grid">
+        <button class="tile combo-tile" onclick="addItem('combo1ClassicHotdog', this)">
+          <h3>#1 Classic + Hotdog</h3>
+          <p>$10</p>
+        </button>
+
+        <button class="tile combo-tile" onclick="addItem('combo1SpecialityHotdog', this)">
+          <h3>#1 Speciality + Hotdog</h3>
+          <p>$12</p>
+        </button>
+
+        <button class="tile combo-tile" onclick="addItem('combo2ClassicBite', this)">
+          <h3>#2 Classic + Bite Stack</h3>
+          <p>$10</p>
+        </button>
+
+        <button class="tile combo-tile" onclick="addItem('combo2SpecialityBite', this)">
+          <h3>#2 Speciality + Bite Stack</h3>
           <p>$12</p>
         </button>
       </div>
@@ -125,6 +160,18 @@
         <div class="order-total-line">
           <span>Items in Order</span>
           <strong id="orderItems">0</strong>
+        </div>
+        <div class="order-total-line">
+          <span>Adrian Split</span>
+          <strong id="currentAdrianSplit">$0.00</strong>
+        </div>
+        <div class="order-total-line">
+          <span>Nana Split</span>
+          <strong id="currentNanaSplit">$0.00</strong>
+        </div>
+        <div class="order-total-line">
+          <span>Mom Split</span>
+          <strong id="currentMomSplit">$0.00</strong>
         </div>
         <div class="order-total-line big-line">
           <span>Subtotal</span>
@@ -171,8 +218,8 @@
 
     <section class="summary-grid">
       <div class="card summary-card">
-        <h2>Your Total</h2>
-        <div class="big-number" id="AdrianTotal">$0.00</div>
+        <h2>Adrian Total</h2>
+        <div class="big-number" id="adrianTotal">$0.00</div>
       </div>
 
       <div class="card summary-card">
