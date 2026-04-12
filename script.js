@@ -1,27 +1,34 @@
 const ITEMS = {
-  baconDog: { name: "Bacon Dog", price: 5, owner: "you" },
-  quackAttack: { name: "Quack Attack", price: 6, owner: "you" },
-  asadaFries: { name: "Asada Fries", price: 10, owner: "you" },
+  baconDog: { name: "Bacon Dog", price: 5, split: { adrian: 5 } },
+  quackAttack: { name: "Quack Attack", price: 6, split: { adrian: 6 } },
+  asadaFries: { name: "Asada Fries", price: 10, split: { adrian: 10 } },
 
-  classicLemonade: { name: "Classic Lemonade", price: 6, owner: "nana" },
-  specialityLemonade: { name: "Speciality Lemonade", price: 8, owner: "nana" },
-  redbullLemonade: { name: "Red Bull Lemonade", price: 9, owner: "nana" },
-  classic64: { name: "64oz Classic", price: 10, owner: "nana" },
-  speciality64: { name: "64oz Speciality", price: 15, owner: "nana" },
-  lemonadeFlavorAdd: { name: "Flavor +$1", price: 1, owner: "nana" },
+  classicLemonade: { name: "Classic Lemonade", price: 6, split: { nana: 6 } },
+  specialityLemonade: { name: "Speciality Lemonade", price: 8, split: { nana: 8 } },
+  redbullLemonade: { name: "Red Bull Lemonade", price: 9, split: { nana: 9 } },
+  classic64: { name: "64oz Classic", price: 10, split: { nana: 10 } },
+  speciality64: { name: "64oz Speciality", price: 15, split: { nana: 15 } },
+  lemonadeFlavorAdd: { name: "Flavor +$1", price: 1, split: { nana: 1 } },
+  lemonadeBobaAdd: { name: "Boba +$1", price: 1, split: { nana: 1 } },
+  lemonadeCreamyAdd: { name: "Creamy +$1", price: 1, split: { nana: 1 } },
 
-  stack20: { name: "20 Stack’d", price: 10, owner: "mom" },
-  stack25: { name: "25 Stack’d", price: 12, owner: "mom" },
-  stack30: { name: "30 Stack’d", price: 15, owner: "mom" },
-  your20: { name: "20 Your Way", price: 8, owner: "mom" },
-  your25: { name: "25 Your Way", price: 10, owner: "mom" },
-  your30: { name: "30 Your Way", price: 12, owner: "mom" },
-  biteSize: { name: "Bite Size", price: 5, owner: "mom" },
-  dubaiStrawberries: { name: "Dubai Strawberries", price: 12, owner: "mom" }
+  stack20: { name: "20 Stack’d", price: 10, split: { mom: 10 } },
+  stack25: { name: "25 Stack’d", price: 12, split: { mom: 12 } },
+  stack30: { name: "30 Stack’d", price: 15, split: { mom: 15 } },
+  your20: { name: "20 Your Way", price: 8, split: { mom: 8 } },
+  your25: { name: "25 Your Way", price: 10, split: { mom: 10 } },
+  your30: { name: "30 Your Way", price: 12, split: { mom: 12 } },
+  biteSize: { name: "Bite Stack", price: 5, split: { mom: 5 } },
+  dubaiStrawberries: { name: "Dubai Strawberries", price: 12, split: { mom: 12 } },
+
+  combo1ClassicHotdog: { name: "#1 Classic + Hotdog", price: 10, split: { adrian: 5, nana: 5 } },
+  combo1SpecialityHotdog: { name: "#1 Speciality + Hotdog", price: 12, split: { adrian: 5, nana: 7 } },
+  combo2ClassicBite: { name: "#2 Classic + Bite Stack", price: 10, split: { mom: 5, nana: 5 } },
+  combo2SpecialityBite: { name: "#2 Speciality + Bite Stack", price: 12, split: { mom: 5, nana: 7 } }
 };
 
 const ITEM_IDS = Object.keys(ITEMS);
-const STORAGE_KEY = "familyPosStateV1";
+const STORAGE_KEY = "familyPosStateV3";
 const tapSound = new Audio("sounds/tap.mp3");
 tapSound.preload = "auto";
 
@@ -35,6 +42,14 @@ function createEmptyCounts() {
   return counts;
 }
 
+function createEmptyOwnerTotals() {
+  return {
+    adrian: 0,
+    nana: 0,
+    mom: 0
+  };
+}
+
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
 
@@ -45,11 +60,7 @@ function loadState() {
       todayDigital: 0,
       history: [],
       actionStack: [],
-      ownerTotals: {
-        you: 0,
-        nana: 0,
-        mom: 0
-      },
+      ownerTotals: createEmptyOwnerTotals(),
       ownerSoldCounts: createEmptyCounts()
     };
   }
@@ -63,7 +74,7 @@ function loadState() {
     history: Array.isArray(saved.history) ? saved.history : [],
     actionStack: Array.isArray(saved.actionStack) ? saved.actionStack : [],
     ownerTotals: {
-      you: Number(saved.ownerTotals?.you) || 0,
+      adrian: Number(saved.ownerTotals?.adrian) || 0,
       nana: Number(saved.ownerTotals?.nana) || 0,
       mom: Number(saved.ownerTotals?.mom) || 0
     },
@@ -81,10 +92,7 @@ function formatMoney(amount) {
 
 function getTodayKey() {
   const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function getTodayLabel() {
@@ -113,52 +121,62 @@ function playTapSound() {
 }
 
 function vibrateTap() {
-  if ("vibrate" in navigator) {
-    navigator.vibrate(25);
-  }
+  if ("vibrate" in navigator) navigator.vibrate(25);
 }
 
 function showFloatMoney(tileEl, amount) {
+  if (!tileEl) return;
   const bubble = document.createElement("div");
   bubble.className = "float-money";
   bubble.textContent = `+$${amount}`;
   tileEl.appendChild(bubble);
-
   setTimeout(() => bubble.remove(), 900);
 }
 
 function animateTile(tileEl) {
+  if (!tileEl) return;
   tileEl.classList.remove("pop");
   void tileEl.offsetWidth;
   tileEl.classList.add("pop");
 }
 
+function getCurrentOrderSplit() {
+  const split = createEmptyOwnerTotals();
+
+  ITEM_IDS.forEach((id) => {
+    const qty = state.currentOrder[id];
+    const itemSplit = ITEMS[id].split;
+
+    Object.keys(itemSplit).forEach((owner) => {
+      split[owner] += itemSplit[owner] * qty;
+    });
+  });
+
+  return split;
+}
+
 function renderOrderList() {
   const orderList = document.getElementById("orderList");
-  const subtotal = getOrderSubtotal();
+  if (!orderList) return;
 
-  if (subtotal === 0) {
+  if (getOrderSubtotal() === 0) {
     orderList.innerHTML = `<div class="empty-order"><span>No items yet</span><span>Tap a box</span></div>`;
     return;
   }
 
-  const rows = ITEM_IDS
+  orderList.innerHTML = ITEM_IDS
     .filter((id) => state.currentOrder[id] > 0)
     .map((id) => {
       const qty = state.currentOrder[id];
       const total = qty * ITEMS[id].price;
-      const owner = ITEMS[id].owner === "you" ? "You" : ITEMS[id].owner === "nana" ? "Nana" : "Mom";
-
       return `
         <div class="order-item-row">
-          <span>${ITEMS[id].name} x${qty} • ${owner}</span>
+          <span>${ITEMS[id].name} x${qty}</span>
           <strong>${formatMoney(total)}</strong>
         </div>
       `;
     })
     .join("");
-
-  orderList.innerHTML = rows;
 }
 
 function getLast7DaysEntries() {
@@ -174,10 +192,7 @@ function getLast7DaysEntries() {
   cutoff.setHours(0, 0, 0, 0);
   cutoff.setDate(cutoff.getDate() - 6);
 
-  return entries.filter((entry) => {
-    const entryDate = new Date(entry.dateKey + "T00:00:00");
-    return entryDate >= cutoff;
-  });
+  return entries.filter((entry) => new Date(entry.dateKey + "T00:00:00") >= cutoff);
 }
 
 function renderWeeklyStats() {
@@ -205,50 +220,68 @@ function renderWeeklyStats() {
     }
   });
 
-  document.getElementById("weeklySales").textContent = formatMoney(weeklySales);
-  document.getElementById("weeklyTopSeller").textContent =
-    bestId && bestCount > 0 ? `${ITEMS[bestId].name} (${bestCount})` : "None yet";
+  const weeklySalesEl = document.getElementById("weeklySales");
+  const weeklyTopSellerEl = document.getElementById("weeklyTopSeller");
+
+  if (weeklySalesEl) weeklySalesEl.textContent = formatMoney(weeklySales);
+  if (weeklyTopSellerEl) weeklyTopSellerEl.textContent = bestId ? `${ITEMS[bestId].name} (${bestCount})` : "None yet";
 }
 
 function renderHistory() {
   const historyList = document.getElementById("historyList");
+  if (!historyList) return;
 
   if (state.history.length === 0) {
     historyList.innerHTML = "<p>No saved days yet.</p>";
     return;
   }
 
-  const newestFirst = [...state.history].reverse();
-
-  historyList.innerHTML = newestFirst
-    .map((day) => {
-      return `
-        <div class="history-entry">
-          <h3>${day.displayDate}</h3>
-          <p><strong>You:</strong> ${formatMoney(day.ownerTotals.you)}</p>
-          <p><strong>Nana:</strong> ${formatMoney(day.ownerTotals.nana)}</p>
-          <p><strong>Mom:</strong> ${formatMoney(day.ownerTotals.mom)}</p>
-          <p><strong>Cash:</strong> ${formatMoney(day.cash)}</p>
-          <p><strong>Digital:</strong> ${formatMoney(day.digital)}</p>
-          <p><strong>Total Items:</strong> ${day.totalItems}</p>
-          <p><strong>Total Sales:</strong> ${formatMoney(day.grandTotal)}</p>
-        </div>
-      `;
-    })
-    .join("");
+  historyList.innerHTML = [...state.history].reverse().map((day) => `
+    <div class="history-entry">
+      <h3>${day.displayDate}</h3>
+      <p><strong>Adrian:</strong> ${formatMoney(day.ownerTotals.adrian)}</p>
+      <p><strong>Nana:</strong> ${formatMoney(day.ownerTotals.nana)}</p>
+      <p><strong>Mom:</strong> ${formatMoney(day.ownerTotals.mom)}</p>
+      <p><strong>Cash:</strong> ${formatMoney(day.cash)}</p>
+      <p><strong>Digital:</strong> ${formatMoney(day.digital)}</p>
+      <p><strong>Total Items:</strong> ${day.totalItems}</p>
+      <p><strong>Total Sales:</strong> ${formatMoney(day.grandTotal)}</p>
+    </div>
+  `).join("");
 }
 
 function updateScreen() {
-  document.getElementById("orderItems").textContent = getOrderItemCount();
-  document.getElementById("orderSubtotal").textContent = formatMoney(getOrderSubtotal());
-  document.getElementById("todaySales").textContent = formatMoney(getTodaySales());
-  document.getElementById("cashTotal").textContent = formatMoney(state.todayCash);
-  document.getElementById("digitalTotal").textContent = formatMoney(state.todayDigital);
-  document.getElementById("todayItems").textContent = getTodayItems();
-  document.getElementById("yourTotal").textContent = formatMoney(state.ownerTotals.you);
-  document.getElementById("nanaTotal").textContent = formatMoney(state.ownerTotals.nana);
-  document.getElementById("momTotal").textContent = formatMoney(state.ownerTotals.mom);
-  document.getElementById("todayDate").textContent = getTodayLabel();
+  const split = getCurrentOrderSplit();
+
+  const ids = {
+    orderItems: document.getElementById("orderItems"),
+    orderSubtotal: document.getElementById("orderSubtotal"),
+    todaySales: document.getElementById("todaySales"),
+    cashTotal: document.getElementById("cashTotal"),
+    digitalTotal: document.getElementById("digitalTotal"),
+    todayItems: document.getElementById("todayItems"),
+    adrianTotal: document.getElementById("adrianTotal"),
+    nanaTotal: document.getElementById("nanaTotal"),
+    momTotal: document.getElementById("momTotal"),
+    currentAdrianSplit: document.getElementById("currentAdrianSplit"),
+    currentNanaSplit: document.getElementById("currentNanaSplit"),
+    currentMomSplit: document.getElementById("currentMomSplit"),
+    todayDate: document.getElementById("todayDate")
+  };
+
+  if (ids.orderItems) ids.orderItems.textContent = getOrderItemCount();
+  if (ids.orderSubtotal) ids.orderSubtotal.textContent = formatMoney(getOrderSubtotal());
+  if (ids.todaySales) ids.todaySales.textContent = formatMoney(getTodaySales());
+  if (ids.cashTotal) ids.cashTotal.textContent = formatMoney(state.todayCash);
+  if (ids.digitalTotal) ids.digitalTotal.textContent = formatMoney(state.todayDigital);
+  if (ids.todayItems) ids.todayItems.textContent = getTodayItems();
+  if (ids.adrianTotal) ids.adrianTotal.textContent = formatMoney(state.ownerTotals.adrian);
+  if (ids.nanaTotal) ids.nanaTotal.textContent = formatMoney(state.ownerTotals.nana);
+  if (ids.momTotal) ids.momTotal.textContent = formatMoney(state.ownerTotals.mom);
+  if (ids.currentAdrianSplit) ids.currentAdrianSplit.textContent = formatMoney(split.adrian);
+  if (ids.currentNanaSplit) ids.currentNanaSplit.textContent = formatMoney(split.nana);
+  if (ids.currentMomSplit) ids.currentMomSplit.textContent = formatMoney(split.mom);
+  if (ids.todayDate) ids.todayDate.textContent = getTodayLabel();
 
   renderOrderList();
   renderWeeklyStats();
@@ -270,7 +303,6 @@ function addItem(itemId, tileEl) {
 
 function undoLastTap() {
   const last = state.actionStack.pop();
-
   if (!last) {
     alert("Nothing to undo.");
     return;
@@ -287,29 +319,13 @@ function undoLastTap() {
 function clearCurrentOrder() {
   if (getOrderSubtotal() === 0) return;
 
-  const confirmClear = confirm("Clear the current order?");
-  if (!confirmClear) return;
+  if (!confirm("Clear the current order?")) return;
 
   state.currentOrder = createEmptyCounts();
   state.actionStack = [];
 
   saveState();
   updateScreen();
-}
-
-function getOwnerBreakdownForCurrentOrder() {
-  const ownerBreakdown = {
-    you: 0,
-    nana: 0,
-    mom: 0
-  };
-
-  ITEM_IDS.forEach((id) => {
-    const amount = state.currentOrder[id] * ITEMS[id].price;
-    ownerBreakdown[ITEMS[id].owner] += amount;
-  });
-
-  return ownerBreakdown;
 }
 
 function finalizeOrder(cashAmount, digitalAmount) {
@@ -325,17 +341,16 @@ function finalizeOrder(cashAmount, digitalAmount) {
     return;
   }
 
-  const combined = cashAmount + digitalAmount;
-  if (Math.abs(combined - subtotal) > 0.009) {
+  if (Math.abs((cashAmount + digitalAmount) - subtotal) > 0.009) {
     alert(`Payments must equal ${formatMoney(subtotal)}.`);
     return;
   }
 
-  const orderBreakdown = getOwnerBreakdownForCurrentOrder();
+  const split = getCurrentOrderSplit();
 
-  state.ownerTotals.you += orderBreakdown.you;
-  state.ownerTotals.nana += orderBreakdown.nana;
-  state.ownerTotals.mom += orderBreakdown.mom;
+  state.ownerTotals.adrian += split.adrian;
+  state.ownerTotals.nana += split.nana;
+  state.ownerTotals.mom += split.mom;
 
   ITEM_IDS.forEach((id) => {
     state.ownerSoldCounts[id] += state.currentOrder[id];
@@ -353,59 +368,50 @@ function finalizeOrder(cashAmount, digitalAmount) {
 
 function checkoutOrder(method) {
   const subtotal = getOrderSubtotal();
-
   if (subtotal === 0) {
     alert("Tap items first.");
     return;
   }
 
-  if (method === "cash") {
-    finalizeOrder(subtotal, 0);
-  } else {
-    finalizeOrder(0, subtotal);
-  }
+  if (method === "cash") finalizeOrder(subtotal, 0);
+  else finalizeOrder(0, subtotal);
 }
 
 function splitPaymentHalf() {
   const subtotal = getOrderSubtotal();
-
   if (subtotal === 0) {
     alert("Tap items first.");
     return;
   }
 
-  const halfCash = Number((subtotal / 2).toFixed(2));
-  const halfDigital = Number((subtotal - halfCash).toFixed(2));
-
-  finalizeOrder(halfCash, halfDigital);
+  const cash = Number((subtotal / 2).toFixed(2));
+  const digital = Number((subtotal - cash).toFixed(2));
+  finalizeOrder(cash, digital);
 }
 
 function splitPaymentCustom() {
   const subtotal = getOrderSubtotal();
-
   if (subtotal === 0) {
     alert("Tap items first.");
     return;
   }
 
   const input = prompt(`Order total is ${formatMoney(subtotal)}.\nEnter CASH amount:`);
-
   if (input === null) return;
 
-  const cashAmount = Number(input);
-
-  if (Number.isNaN(cashAmount)) {
+  const cash = Number(input);
+  if (Number.isNaN(cash)) {
     alert("Enter a valid number.");
     return;
   }
 
-  if (cashAmount < 0 || cashAmount > subtotal) {
+  if (cash < 0 || cash > subtotal) {
     alert(`Cash amount must be between $0 and ${subtotal.toFixed(2)}.`);
     return;
   }
 
-  const digitalAmount = Number((subtotal - cashAmount).toFixed(2));
-  finalizeOrder(Number(cashAmount.toFixed(2)), digitalAmount);
+  const digital = Number((subtotal - cash).toFixed(2));
+  finalizeOrder(Number(cash.toFixed(2)), digital);
 }
 
 function buildDaySummary() {
@@ -422,7 +428,7 @@ function buildDaySummary() {
     totalItems: getTodayItems(),
     grandTotal: getTodaySales(),
     ownerTotals: {
-      you: state.ownerTotals.you,
+      adrian: state.ownerTotals.adrian,
       nana: state.ownerTotals.nana,
       mom: state.ownerTotals.mom
     },
@@ -432,6 +438,8 @@ function buildDaySummary() {
 
 function launchConfetti() {
   const container = document.getElementById("confettiContainer");
+  if (!container) return;
+
   const colors = ["#ff6fa5", "#ffd166", "#7bd389", "#7aa7ff", "#ffffff"];
 
   for (let i = 0; i < 70; i++) {
@@ -441,15 +449,13 @@ function launchConfetti() {
     piece.style.background = colors[Math.floor(Math.random() * colors.length)];
     piece.style.animationDuration = `${1100 + Math.random() * 700}ms`;
     container.appendChild(piece);
-
     setTimeout(() => piece.remove(), 2000);
   }
 }
 
 function saveDay() {
   if (getOrderSubtotal() > 0) {
-    const continueSave = confirm("You still have items in the current order. Save the day anyway?");
-    if (!continueSave) return;
+    if (!confirm("You still have items in the current order. Save the day anyway?")) return;
   }
 
   if (getTodaySales() === 0) {
@@ -465,7 +471,7 @@ function saveDay() {
   state.todayCash = 0;
   state.todayDigital = 0;
   state.actionStack = [];
-  state.ownerTotals = { you: 0, nana: 0, mom: 0 };
+  state.ownerTotals = createEmptyOwnerTotals();
   state.ownerSoldCounts = createEmptyCounts();
 
   saveState();
@@ -476,14 +482,13 @@ function saveDay() {
 }
 
 function resetDay() {
-  const confirmReset = confirm("Reset today's sales and current order without saving?");
-  if (!confirmReset) return;
+  if (!confirm("Reset today's sales and current order without saving?")) return;
 
   state.currentOrder = createEmptyCounts();
   state.todayCash = 0;
   state.todayDigital = 0;
   state.actionStack = [];
-  state.ownerTotals = { you: 0, nana: 0, mom: 0 };
+  state.ownerTotals = createEmptyOwnerTotals();
   state.ownerSoldCounts = createEmptyCounts();
 
   saveState();
