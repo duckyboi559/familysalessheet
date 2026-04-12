@@ -28,7 +28,7 @@ const ITEMS = {
 };
 
 const ITEM_IDS = Object.keys(ITEMS);
-const STORAGE_KEY = "familyPosStateV3";
+const STORAGE_KEY = "familyPosStateV4";
 const tapSound = new Audio("sounds/tap.mp3");
 tapSound.preload = "auto";
 
@@ -61,7 +61,9 @@ function loadState() {
       history: [],
       actionStack: [],
       ownerTotals: createEmptyOwnerTotals(),
-      ownerSoldCounts: createEmptyCounts()
+      ownerSoldCounts: createEmptyCounts(),
+      todayOrders: [],
+      nextOrderNumber: 1
     };
   }
 
@@ -78,7 +80,9 @@ function loadState() {
       nana: Number(saved.ownerTotals?.nana) || 0,
       mom: Number(saved.ownerTotals?.mom) || 0
     },
-    ownerSoldCounts: { ...createEmptyCounts(), ...(saved.ownerSoldCounts || {}) }
+    ownerSoldCounts: { ...createEmptyCounts(), ...(saved.ownerSoldCounts || {}) },
+    todayOrders: Array.isArray(saved.todayOrders) ? saved.todayOrders : [],
+    nextOrderNumber: Number(saved.nextOrderNumber) || 1
   };
 }
 
@@ -97,6 +101,10 @@ function getTodayKey() {
 
 function getTodayLabel() {
   return new Date().toLocaleDateString();
+}
+
+function getCurrentTimeLabel() {
+  return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 function getOrderSubtotal() {
@@ -153,6 +161,17 @@ function getCurrentOrderSplit() {
   });
 
   return split;
+}
+
+function getCurrentOrderItemsForSave() {
+  return ITEM_IDS
+    .filter((id) => state.currentOrder[id] > 0)
+    .map((id) => ({
+      id,
+      name: ITEMS[id].name,
+      qty: state.currentOrder[id],
+      total: state.currentOrder[id] * ITEMS[id].price
+    }));
 }
 
 function renderOrderList() {
@@ -250,6 +269,51 @@ function renderHistory() {
   `).join("");
 }
 
+function renderTodayOrders() {
+  const todayOrdersList = document.getElementById("todayOrdersList");
+  const lastOrderCard = document.getElementById("lastOrderCard");
+  const ordersTodayCount = document.getElementById("ordersTodayCount");
+  const currentOrderNumber = document.getElementById("currentOrderNumber");
+
+  if (ordersTodayCount) ordersTodayCount.textContent = state.todayOrders.length;
+  if (currentOrderNumber) currentOrderNumber.textContent = state.nextOrderNumber;
+
+  if (state.todayOrders.length === 0) {
+    if (todayOrdersList) todayOrdersList.innerHTML = "<p>No paid orders yet today.</p>";
+    if (lastOrderCard) lastOrderCard.innerHTML = "<p>No paid orders yet.</p>";
+    return;
+  }
+
+  const newestFirst = [...state.todayOrders].reverse();
+
+  if (todayOrdersList) {
+    todayOrdersList.innerHTML = newestFirst.map((order) => `
+      <div class="history-entry">
+        <h3>Order #${order.orderNumber} • ${order.time}</h3>
+        ${order.items.map((item) => `<p>${item.name} x${item.qty} (${formatMoney(item.total)})</p>`).join("")}
+        <p><strong>Payment:</strong> ${order.paymentMethod}</p>
+        <p><strong>Adrian:</strong> ${formatMoney(order.split.adrian)}</p>
+        <p><strong>Nana:</strong> ${formatMoney(order.split.nana)}</p>
+        <p><strong>Mom:</strong> ${formatMoney(order.split.mom)}</p>
+        <p><strong>Total:</strong> ${formatMoney(order.total)}</p>
+      </div>
+    `).join("");
+  }
+
+  const last = state.todayOrders[state.todayOrders.length - 1];
+  if (lastOrderCard) {
+    lastOrderCard.innerHTML = `
+      <h3>Order #${last.orderNumber} • ${last.time}</h3>
+      ${last.items.map((item) => `<p>${item.name} x${item.qty} (${formatMoney(item.total)})</p>`).join("")}
+      <p><strong>Payment:</strong> ${last.paymentMethod}</p>
+      <p><strong>Adrian:</strong> ${formatMoney(last.split.adrian)}</p>
+      <p><strong>Nana:</strong> ${formatMoney(last.split.nana)}</p>
+      <p><strong>Mom:</strong> ${formatMoney(last.split.mom)}</p>
+      <p><strong>Total:</strong> ${formatMoney(last.total)}</p>
+    `;
+  }
+}
+
 function updateScreen() {
   const split = getCurrentOrderSplit();
 
@@ -265,8 +329,7 @@ function updateScreen() {
     momTotal: document.getElementById("momTotal"),
     currentAdrianSplit: document.getElementById("currentAdrianSplit"),
     currentNanaSplit: document.getElementById("currentNanaSplit"),
-    currentMomSplit: document.getElementById("currentMomSplit"),
-    todayDate: document.getElementById("todayDate")
+    currentMomSplit: document.getElementById("currentMomSplit")
   };
 
   if (ids.orderItems) ids.orderItems.textContent = getOrderItemCount();
@@ -281,11 +344,11 @@ function updateScreen() {
   if (ids.currentAdrianSplit) ids.currentAdrianSplit.textContent = formatMoney(split.adrian);
   if (ids.currentNanaSplit) ids.currentNanaSplit.textContent = formatMoney(split.nana);
   if (ids.currentMomSplit) ids.currentMomSplit.textContent = formatMoney(split.mom);
-  if (ids.todayDate) ids.todayDate.textContent = getTodayLabel();
 
   renderOrderList();
   renderWeeklyStats();
   renderHistory();
+  renderTodayOrders();
 }
 
 function addItem(itemId, tileEl) {
@@ -318,7 +381,6 @@ function undoLastTap() {
 
 function clearCurrentOrder() {
   if (getOrderSubtotal() === 0) return;
-
   if (!confirm("Clear the current order?")) return;
 
   state.currentOrder = createEmptyCounts();
@@ -328,7 +390,25 @@ function clearCurrentOrder() {
   updateScreen();
 }
 
-function finalizeOrder(cashAmount, digitalAmount) {
+function savePaidOrder(paymentMethod, cashAmount, digitalAmount) {
+  const orderItems = getCurrentOrderItemsForSave();
+  const split = getCurrentOrderSplit();
+
+  state.todayOrders.push({
+    orderNumber: state.nextOrderNumber,
+    time: getCurrentTimeLabel(),
+    paymentMethod,
+    cashAmount,
+    digitalAmount,
+    total: getOrderSubtotal(),
+    split,
+    items: orderItems
+  });
+
+  state.nextOrderNumber += 1;
+}
+
+function finalizeOrder(cashAmount, digitalAmount, paymentMethodLabel) {
   const subtotal = getOrderSubtotal();
 
   if (subtotal === 0) {
@@ -347,6 +427,8 @@ function finalizeOrder(cashAmount, digitalAmount) {
   }
 
   const split = getCurrentOrderSplit();
+
+  savePaidOrder(paymentMethodLabel, cashAmount, digitalAmount);
 
   state.ownerTotals.adrian += split.adrian;
   state.ownerTotals.nana += split.nana;
@@ -373,8 +455,8 @@ function checkoutOrder(method) {
     return;
   }
 
-  if (method === "cash") finalizeOrder(subtotal, 0);
-  else finalizeOrder(0, subtotal);
+  if (method === "cash") finalizeOrder(subtotal, 0, "Cash");
+  else finalizeOrder(0, subtotal, "Digital");
 }
 
 function splitPaymentHalf() {
@@ -386,7 +468,7 @@ function splitPaymentHalf() {
 
   const cash = Number((subtotal / 2).toFixed(2));
   const digital = Number((subtotal - cash).toFixed(2));
-  finalizeOrder(cash, digital);
+  finalizeOrder(cash, digital, "Split 50/50");
 }
 
 function splitPaymentCustom() {
@@ -411,7 +493,7 @@ function splitPaymentCustom() {
   }
 
   const digital = Number((subtotal - cash).toFixed(2));
-  finalizeOrder(Number(cash.toFixed(2)), digital);
+  finalizeOrder(Number(cash.toFixed(2)), digital, "Split Custom");
 }
 
 function buildDaySummary() {
@@ -419,80 +501,3 @@ function buildDaySummary() {
   ITEM_IDS.forEach((id) => {
     itemCounts[id] = state.ownerSoldCounts[id];
   });
-
-  return {
-    dateKey: getTodayKey(),
-    displayDate: getTodayLabel(),
-    cash: state.todayCash,
-    digital: state.todayDigital,
-    totalItems: getTodayItems(),
-    grandTotal: getTodaySales(),
-    ownerTotals: {
-      adrian: state.ownerTotals.adrian,
-      nana: state.ownerTotals.nana,
-      mom: state.ownerTotals.mom
-    },
-    itemCounts
-  };
-}
-
-function launchConfetti() {
-  const container = document.getElementById("confettiContainer");
-  if (!container) return;
-
-  const colors = ["#ff6fa5", "#ffd166", "#7bd389", "#7aa7ff", "#ffffff"];
-
-  for (let i = 0; i < 70; i++) {
-    const piece = document.createElement("div");
-    piece.className = "confetti-piece";
-    piece.style.left = `${Math.random() * 100}%`;
-    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-    piece.style.animationDuration = `${1100 + Math.random() * 700}ms`;
-    container.appendChild(piece);
-    setTimeout(() => piece.remove(), 2000);
-  }
-}
-
-function saveDay() {
-  if (getOrderSubtotal() > 0) {
-    if (!confirm("You still have items in the current order. Save the day anyway?")) return;
-  }
-
-  if (getTodaySales() === 0) {
-    alert("No finished sales to save yet.");
-    return;
-  }
-
-  const todaySummary = buildDaySummary();
-  state.history = state.history.filter((entry) => entry.dateKey !== todaySummary.dateKey);
-  state.history.push(todaySummary);
-
-  state.currentOrder = createEmptyCounts();
-  state.todayCash = 0;
-  state.todayDigital = 0;
-  state.actionStack = [];
-  state.ownerTotals = createEmptyOwnerTotals();
-  state.ownerSoldCounts = createEmptyCounts();
-
-  saveState();
-  updateScreen();
-  launchConfetti();
-
-  alert("Day saved and reset for tomorrow.");
-}
-
-function resetDay() {
-  if (!confirm("Reset today's sales and current order without saving?")) return;
-
-  state.currentOrder = createEmptyCounts();
-  state.todayCash = 0;
-  state.todayDigital = 0;
-  state.actionStack = [];
-  state.ownerTotals = createEmptyOwnerTotals();
-  state.ownerSoldCounts = createEmptyCounts();
-
-  saveState();
-  updateScreen();
-}
-
-updateScreen();
