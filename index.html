@@ -100,6 +100,20 @@
             <div class="summary-item"><span>Total</span><strong id="dayTotal">$0.00</strong></div>
           </div>
         </div>
+        <section class="card">
+  <h2>Day Actions</h2>
+  <div class="action-row">
+    <button type="button" class="primary-btn" onclick="saveDay()">Save Day</button>
+    <button type="button" class="secondary-btn" onclick="resetDay()">Reset Day</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Previous Days</h2>
+  <div id="previousDays" class="today-orders">
+    <p>No saved days yet.</p>
+  </div>
+</section>
 
         <div class="card">
           <h2>Today’s Paid Orders</h2>
