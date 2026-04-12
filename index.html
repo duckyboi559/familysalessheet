@@ -3,279 +3,113 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Family POS</title>
+  <title>Family Builder POS</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header class="hero">
-      <h1>Family POS</h1>
-      <p class="subtitle">Tap items, then choose payment</p>
+      <h1>Family Builder POS</h1>
+      <p class="subtitle">Build each item step by step, review it, then add to order</p>
     </header>
 
-    <section class="summary-grid">
-      <div class="card summary-card">
-        <h2>Current Order #</h2>
-        <div class="big-number" id="currentOrderNumber">1</div>
+    <section class="top-summary">
+      <div class="card mini-card">
+        <h2>Order #</h2>
+        <div class="big-number" id="orderNumber">1</div>
       </div>
-
-      <div class="card summary-card">
+      <div class="card mini-card">
         <h2>Orders Today</h2>
         <div class="big-number" id="ordersTodayCount">0</div>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Last Order</h2>
-      <div id="lastOrderCard" class="last-order-card">
-        <p>No paid orders yet.</p>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2 class="section-title">Adrian • Hotdogs</h2>
-      <div class="grid">
-        <button type="button" class="tile hotdog-tile" onclick="addItem('baconDog', this)">
-          <h3>Bacon Dog</h3>
-          <p>$5</p>
-        </button>
-
-        <button type="button" class="tile hotdog-tile" onclick="addItem('quackAttack', this)">
-          <h3>Quack Attack</h3>
-          <p>$6</p>
-        </button>
-
-        <button type="button" class="tile hotdog-tile" onclick="addItem('asadaFries', this)">
-          <h3>Asada Fries</h3>
-          <p>$10</p>
-        </button>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2 class="section-title">Nana • Lemonade</h2>
-      <div class="grid">
-        <button type="button" class="tile lemonade-tile" onclick="addItem('classicLemonade', this)">
-          <h3>Classic Lemonade</h3>
-          <p>$6</p>
-        </button>
-
-        <button type="button" class="tile lemonade-tile" onclick="addItem('specialityLemonade', this)">
-          <h3>Speciality Lemonade</h3>
-          <p>$8</p>
-        </button>
-
-        <button type="button" class="tile lemonade-tile" onclick="addItem('redbullLemonade', this)">
-          <h3>Red Bull Lemonade</h3>
-          <p>$9</p>
-        </button>
-
-        <button type="button" class="tile lemonade-tile" onclick="addItem('classic64', this)">
-          <h3>64oz Classic</h3>
-          <p>$10</p>
-        </button>
-
-        <button type="button" class="tile lemonade-tile" onclick="addItem('speciality64', this)">
-          <h3>64oz Speciality</h3>
-          <p>$15</p>
-        </button>
-
-        <button type="button" class="tile addon-tile" onclick="addItem('lemonadeFlavorAdd', this)">
-          <h3>Flavor +$1</h3>
-          <p>$1</p>
-        </button>
-
-        <button type="button" class="tile addon-tile" onclick="addItem('lemonadeBobaAdd', this)">
-          <h3>Boba +$1</h3>
-          <p>$1</p>
-        </button>
-
-        <button type="button" class="tile addon-tile" onclick="addItem('lemonadeCreamyAdd', this)">
-          <h3>Creamy +$1</h3>
-          <p>$1</p>
-        </button>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2 class="section-title">Mom • Mini Pancakes</h2>
-      <div class="grid">
-        <button type="button" class="tile pancake-tile" onclick="addItem('stack20', this)">
-          <h3>20 Stack’d</h3>
-          <p>$10</p>
-        </button>
-
-        <button type="button" class="tile pancake-tile" onclick="addItem('stack25', this)">
-          <h3>25 Stack’d</h3>
-          <p>$12</p>
-        </button>
-
-        <button type="button" class="tile pancake-tile" onclick="addItem('stack30', this)">
-          <h3>30 Stack’d</h3>
-          <p>$15</p>
-        </button>
-
-        <button type="button" class="tile pancake-tile" onclick="addItem('your20', this)">
-          <h3>20 Your Way</h3>
-          <p>$8</p>
-        </button>
-
-        <button type="button" class="tile pancake-tile" onclick="addItem('your25', this)">
-          <h3>25 Your Way</h3>
-          <p>$10</p>
-        </button>
-
-        <button type="button" class="tile pancake-tile" onclick="addItem('your30', this)">
-          <h3>30 Your Way</h3>
-          <p>$12</p>
-        </button>
-
-        <button type="button" class="tile pancake-tile" onclick="addItem('biteSize', this)">
-          <h3>Bite Stack</h3>
-          <p>$5</p>
-        </button>
-
-        <button type="button" class="tile pancake-tile" onclick="addItem('dubaiStrawberries', this)">
-          <h3>Dubai Strawberries</h3>
-          <p>$12</p>
-        </button>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2 class="section-title">Combos</h2>
-      <div class="grid">
-        <button type="button" class="tile combo-tile" onclick="addItem('combo1ClassicHotdog', this)">
-          <h3>#1 Classic + Hotdog</h3>
-          <p>$10</p>
-        </button>
-
-        <button type="button" class="tile combo-tile" onclick="addItem('combo1SpecialityHotdog', this)">
-          <h3>#1 Speciality + Hotdog</h3>
-          <p>$12</p>
-        </button>
-
-        <button type="button" class="tile combo-tile" onclick="addItem('combo2ClassicBite', this)">
-          <h3>#2 Classic + Bite Stack</h3>
-          <p>$10</p>
-        </button>
-
-        <button type="button" class="tile combo-tile" onclick="addItem('combo2SpecialityBite', this)">
-          <h3>#2 Speciality + Bite Stack</h3>
-          <p>$12</p>
-        </button>
-      </div>
-    </section>
-
-    <section class="card current-order-card">
-      <div class="card-header-row">
-        <h2>Current Order</h2>
-        <button type="button" class="small-btn dark-btn" onclick="undoLastTap()">Undo Last Tap</button>
-      </div>
-
-      <div id="orderList" class="order-list"></div>
-
-      <div class="order-totals">
-        <div class="order-total-line">
-          <span>Items in Order</span>
-          <strong id="orderItems">0</strong>
+    <section class="layout">
+      <div class="left-panel">
+        <div class="card">
+          <h2>Choose Category</h2>
+          <div class="category-grid">
+            <button type="button" class="category-btn hotdog-cat" onclick="startBuilder('hotdog')">Hotdogs</button>
+            <button type="button" class="category-btn lemonade-cat" onclick="startBuilder('lemonade')">Lemonade</button>
+            <button type="button" class="category-btn pancake-cat" onclick="startBuilder('pancake')">Mini Pancakes</button>
+            <button type="button" class="category-btn combo-cat" onclick="startBuilder('combo')">Combos</button>
+          </div>
         </div>
-        <div class="order-total-line">
-          <span>Adrian Split</span>
-          <strong id="currentAdrianSplit">$0.00</strong>
+
+        <div class="card">
+          <h2>Builder</h2>
+          <div id="builderStage" class="builder-stage">
+            <p>Pick a category to begin.</p>
+          </div>
         </div>
-        <div class="order-total-line">
-          <span>Nana Split</span>
-          <strong id="currentNanaSplit">$0.00</strong>
-        </div>
-        <div class="order-total-line">
-          <span>Mom Split</span>
-          <strong id="currentMomSplit">$0.00</strong>
-        </div>
-        <div class="order-total-line big-line">
-          <span>Subtotal</span>
-          <strong id="orderSubtotal">$0.00</strong>
+
+        <div class="card">
+          <h2>Review Before Add</h2>
+          <div id="reviewCard" class="review-card">
+            <p>No item being built yet.</p>
+          </div>
+          <div class="action-row">
+            <button type="button" class="secondary-btn" onclick="clearBuilder()">Clear Builder</button>
+            <button type="button" class="primary-btn" onclick="addBuiltItemToOrder()">Add to Order</button>
+          </div>
         </div>
       </div>
 
-      <div class="checkout-row">
-        <button type="button" class="pay-btn cash-btn" onclick="checkoutOrder('cash')">Pay Cash</button>
-        <button type="button" class="pay-btn digital-btn" onclick="checkoutOrder('digital')">Pay Digital</button>
+      <div class="right-panel">
+        <div class="card">
+          <h2>Current Order</h2>
+          <div id="orderList" class="order-list">
+            <p>No items in order yet.</p>
+          </div>
+
+          <div class="totals-box">
+            <div class="line"><span>Adrian Split</span><strong id="adrianSplit">$0.00</strong></div>
+            <div class="line"><span>Nana Split</span><strong id="nanaSplit">$0.00</strong></div>
+            <div class="line"><span>Mom Split</span><strong id="momSplit">$0.00</strong></div>
+            <div class="line total-line"><span>Order Total</span><strong id="orderTotal">$0.00</strong></div>
+          </div>
+
+          <div class="action-row">
+            <button type="button" class="pay-btn cash-btn" onclick="checkoutOrder('cash')">Pay Cash</button>
+            <button type="button" class="pay-btn digital-btn" onclick="checkoutOrder('digital')">Pay Digital</button>
+          </div>
+          <div class="action-row">
+            <button type="button" class="pay-btn split-btn" onclick="checkoutSplitHalf()">Split 50/50</button>
+            <button type="button" class="pay-btn split-custom-btn" onclick="checkoutSplitCustom()">Split Custom</button>
+          </div>
+          <div class="action-row">
+            <button type="button" class="pay-btn cancel-btn" onclick="clearOrder()">Clear Order</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Last Paid Order</h2>
+          <div id="lastOrderCard" class="last-order-card">
+            <p>No paid orders yet.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Totals Today</h2>
+          <div class="summary-grid">
+            <div class="summary-item"><span>Adrian</span><strong id="adrianTotal">$0.00</strong></div>
+            <div class="summary-item"><span>Nana</span><strong id="nanaTotal">$0.00</strong></div>
+            <div class="summary-item"><span>Mom</span><strong id="momTotal">$0.00</strong></div>
+            <div class="summary-item"><span>Cash</span><strong id="cashTotal">$0.00</strong></div>
+            <div class="summary-item"><span>Digital</span><strong id="digitalTotal">$0.00</strong></div>
+            <div class="summary-item"><span>Total</span><strong id="dayTotal">$0.00</strong></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Today’s Paid Orders</h2>
+          <div id="todayOrders" class="today-orders">
+            <p>No paid orders yet.</p>
+          </div>
+        </div>
       </div>
-
-      <div class="checkout-row">
-        <button type="button" class="pay-btn split-btn" onclick="splitPaymentHalf()">Split 50/50</button>
-        <button type="button" class="pay-btn split-custom-btn" onclick="splitPaymentCustom()">Split Custom</button>
-      </div>
-
-      <div class="checkout-row">
-        <button type="button" class="pay-btn cancel-btn" onclick="clearCurrentOrder()">Clear Order</button>
-      </div>
-    </section>
-
-    <section class="summary-grid">
-      <div class="card summary-card">
-        <h2>Total Sales</h2>
-        <div class="big-number" id="todaySales">$0.00</div>
-      </div>
-
-      <div class="card summary-card">
-        <h2>Cash</h2>
-        <div class="big-number" id="cashTotal">$0.00</div>
-      </div>
-
-      <div class="card summary-card">
-        <h2>Digital</h2>
-        <div class="big-number" id="digitalTotal">$0.00</div>
-      </div>
-
-      <div class="card summary-card">
-        <h2>Items Sold</h2>
-        <div class="big-number" id="todayItems">0</div>
-      </div>
-    </section>
-
-    <section class="summary-grid">
-      <div class="card summary-card">
-        <h2>Adrian Total</h2>
-        <div class="big-number" id="adrianTotal">$0.00</div>
-      </div>
-
-      <div class="card summary-card">
-        <h2>Nana Total</h2>
-        <div class="big-number" id="nanaTotal">$0.00</div>
-      </div>
-
-      <div class="card summary-card">
-        <h2>Mom Total</h2>
-        <div class="big-number" id="momTotal">$0.00</div>
-      </div>
-
-      <div class="card summary-card">
-        <h2>This Week</h2>
-        <div class="big-number" id="weeklySales">$0.00</div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="save-row">
-        <button type="button" class="save-btn" onclick="saveDay()">Save Day</button>
-        <button type="button" class="reset-btn" onclick="resetDay()">Reset Day</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Today’s Orders</h2>
-      <div id="todayOrdersList" class="history-list"></div>
-    </section>
-
-    <section class="card">
-      <h2>Previous Days</h2>
-      <div id="historyList" class="history-list"></div>
     </section>
   </div>
-
-  <div id="confettiContainer" class="confetti-container"></div>
 
   <script src="script.js"></script>
 </body>
