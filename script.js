@@ -129,7 +129,42 @@ function loadState() {
     };
   }
 }
+function editOrderItem(index) {
+  const item = state.orderItems[index];
 
+  const newPrice = prompt(
+    `Edit price for "${item.name}"`,
+    item.price
+  );
+
+  if (newPrice === null) return;
+
+  const parsed = Number(newPrice);
+
+  if (isNaN(parsed) || parsed <= 0) {
+    alert("Invalid price.");
+    return;
+  }
+
+  // adjust split proportionally (simple version)
+  const totalSplit =
+    (item.split.adrian || 0) +
+    (item.split.nana || 0) +
+    (item.split.mom || 0);
+
+  if (totalSplit > 0) {
+    const ratio = parsed / totalSplit;
+
+    item.split.adrian = (item.split.adrian || 0) * ratio;
+    item.split.nana = (item.split.nana || 0) * ratio;
+    item.split.mom = (item.split.mom || 0) * ratio;
+  }
+
+  item.price = parsed;
+
+  saveState();
+  updateUI();
+}
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
