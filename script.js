@@ -83,7 +83,7 @@ const FRUITS = [
   "Bananas"
 ];
 
-const STORAGE_KEY = "family_builder_pos_v3";
+const STORAGE_KEY = "family_builder_pos_v2_repeat_edit";
 
 let state = loadState();
 
@@ -102,11 +102,9 @@ function loadState() {
         cashTotal: 0,
         digitalTotal: 0,
         paidOrders: [],
-        previousDays: [],
         nextOrderNumber: 1
       };
     }
-
     const parsed = JSON.parse(raw);
     return {
       orderItems: parsed.orderItems || [],
@@ -114,7 +112,6 @@ function loadState() {
       cashTotal: parsed.cashTotal || 0,
       digitalTotal: parsed.digitalTotal || 0,
       paidOrders: parsed.paidOrders || [],
-      previousDays: parsed.previousDays || [],
       nextOrderNumber: parsed.nextOrderNumber || 1
     };
   } catch {
@@ -124,47 +121,11 @@ function loadState() {
       cashTotal: 0,
       digitalTotal: 0,
       paidOrders: [],
-      previousDays: [],
       nextOrderNumber: 1
     };
   }
 }
-function editOrderItem(index) {
-  const item = state.orderItems[index];
 
-  const newPrice = prompt(
-    `Edit price for "${item.name}"`,
-    item.price
-  );
-
-  if (newPrice === null) return;
-
-  const parsed = Number(newPrice);
-
-  if (isNaN(parsed) || parsed <= 0) {
-    alert("Invalid price.");
-    return;
-  }
-
-  // adjust split proportionally (simple version)
-  const totalSplit =
-    (item.split.adrian || 0) +
-    (item.split.nana || 0) +
-    (item.split.mom || 0);
-
-  if (totalSplit > 0) {
-    const ratio = parsed / totalSplit;
-
-    item.split.adrian = (item.split.adrian || 0) * ratio;
-    item.split.nana = (item.split.nana || 0) * ratio;
-    item.split.mom = (item.split.mom || 0) * ratio;
-  }
-
-  item.price = parsed;
-
-  saveState();
-  updateUI();
-}
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -178,14 +139,6 @@ function playTap() {
     const audio = new Audio("sounds/tap.mp3");
     audio.play().catch(() => {});
   } catch {}
-}
-
-function getTodayLabel() {
-  return new Date().toLocaleDateString();
-}
-
-function getCurrentTimeLabel() {
-  return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 function escapeForSingleQuote(str) {
@@ -627,6 +580,38 @@ function removeOrderItem(index) {
   updateUI();
 }
 
+function editOrderItem(index) {
+  const item = state.orderItems[index];
+  if (!item) return;
+
+  const newPriceInput = prompt(`Edit price for "${item.name}"`, item.price);
+  if (newPriceInput === null) return;
+
+  const newPrice = Number(newPriceInput);
+  if (Number.isNaN(newPrice) || newPrice <= 0) {
+    alert("Invalid price.");
+    return;
+  }
+
+  const oldSplitTotal =
+    (item.split.adrian || 0) +
+    (item.split.nana || 0) +
+    (item.split.mom || 0);
+
+  if (oldSplitTotal > 0) {
+    const ratio = newPrice / oldSplitTotal;
+    item.split = {
+      adrian: Number(((item.split.adrian || 0) * ratio).toFixed(2)),
+      nana: Number(((item.split.nana || 0) * ratio).toFixed(2)),
+      mom: Number(((item.split.mom || 0) * ratio).toFixed(2))
+    };
+  }
+
+  item.price = Number(newPrice.toFixed(2));
+  saveState();
+  updateUI();
+}
+
 function clearOrder() {
   if (!state.orderItems.length) return;
   if (!confirm("Clear the whole order?")) return;
@@ -651,7 +636,10 @@ function renderOrderList() {
         ${item.details.map(d => `<p>${d}</p>`).join("")}
         <p>${formatMoney(item.price)}</p>
       </div>
-      <button type="button" class="remove-btn" onclick="removeOrderItem(${index})">Remove</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="remove-btn" onclick="editOrderItem(${index})">Edit</button>
+        <button type="button" class="remove-btn" onclick="removeOrderItem(${index})">Remove</button>
+      </div>
     </div>
   `).join("");
 }
@@ -696,6 +684,25 @@ function renderPaidOrders() {
       <p><strong>Mom:</strong> ${formatMoney(last.split.mom)}</p>
     `;
   }
+}
+
+function repeatLastOrder() {
+  if (!state.paidOrders || !state.paidOrders.length) {
+    alert("No previous orders to repeat.");
+    return;
+  }
+
+  const lastOrder = state.paidOrders[state.paidOrders.length - 1];
+
+  state.orderItems = lastOrder.items.map(item => ({
+    ...item,
+    split: { ...item.split },
+    details: Array.isArray(item.details) ? [...item.details] : []
+  }));
+
+  saveState();
+  updateUI();
+  playTap();
 }
 
 function updateUI() {
