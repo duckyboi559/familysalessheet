@@ -316,14 +316,6 @@ body {
   color: var(--pink-5);
 }
 
-.top-seller {
-  font-size: 1.1rem;
-  font-weight: bold;
-  text-align: center;
-  color: var(--pink-5);
-  line-height: 1.4;
-}
-
 .save-row {
   display: flex;
   gap: 10px;
