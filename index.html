@@ -82,12 +82,19 @@
           </div>
         </div>
 
-        <div class="card">
-          <h2>Last Paid Order</h2>
-          <div id="lastOrderCard" class="last-order-card">
-            <p>No paid orders yet.</p>
-          </div>
-        </div>
+<div class="card">
+  <h2>Last Paid Order</h2>
+
+  <div id="lastOrderCard" class="last-order-card">
+    <p>No paid orders yet.</p>
+  </div>
+
+  <div class="action-row">
+    <button type="button" class="primary-btn" onclick="repeatLastOrder()">
+      Repeat Last Order
+    </button>
+  </div>
+</div>
 
         <div class="card">
           <h2>Totals Today</h2>
