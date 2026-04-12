@@ -83,7 +83,7 @@ const FRUITS = [
   "Bananas"
 ];
 
-const STORAGE_KEY = "family_builder_pos_v2";
+const STORAGE_KEY = "family_builder_pos_v3";
 
 let state = loadState();
 
@@ -102,9 +102,11 @@ function loadState() {
         cashTotal: 0,
         digitalTotal: 0,
         paidOrders: [],
+        previousDays: [],
         nextOrderNumber: 1
       };
     }
+
     const parsed = JSON.parse(raw);
     return {
       orderItems: parsed.orderItems || [],
@@ -112,6 +114,7 @@ function loadState() {
       cashTotal: parsed.cashTotal || 0,
       digitalTotal: parsed.digitalTotal || 0,
       paidOrders: parsed.paidOrders || [],
+      previousDays: parsed.previousDays || [],
       nextOrderNumber: parsed.nextOrderNumber || 1
     };
   } catch {
@@ -121,6 +124,7 @@ function loadState() {
       cashTotal: 0,
       digitalTotal: 0,
       paidOrders: [],
+      previousDays: [],
       nextOrderNumber: 1
     };
   }
@@ -139,6 +143,20 @@ function playTap() {
     const audio = new Audio("sounds/tap.mp3");
     audio.play().catch(() => {});
   } catch {}
+}
+
+function getTodayLabel() {
+  return new Date().toLocaleDateString();
+}
+
+function getCurrentTimeLabel() {
+  return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function escapeForSingleQuote(str) {
+  return String(str)
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'");
 }
 
 function startBuilder(category) {
@@ -186,18 +204,11 @@ function isSelectedInArray(key, value) {
   return Array.isArray(builder.data[key]) && builder.data[key].includes(value);
 }
 
-function escapeForSingleQuote(str) {
-  return String(str)
-    .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'");
-}
-
 function renderChoiceButtons(items, key, isArray = false, maxCount = null) {
   return `
     <div class="choice-grid">
       ${items.map(item => {
         const safeItem = escapeForSingleQuote(item);
-
         const selectedClass = isArray
           ? (isSelectedInArray(key, item) ? "selected" : "")
           : (isSelected(key, item) ? "selected" : "");
@@ -219,6 +230,7 @@ function renderChoiceButtons(items, key, isArray = false, maxCount = null) {
     </div>
   `;
 }
+
 function renderBuilder() {
   const stage = document.getElementById("builderStage");
   if (!stage) return;
@@ -384,33 +396,19 @@ function buildReviewObject() {
     const type = builder.data.hotdogType;
     if (!type) return null;
 
-    if (type === "Bacon Dog") {
-      return { name: "Bacon Dog", price: 5, split: { adrian: 5 }, details: ["Hotdog"] };
-    }
-    if (type === "Quack Attack") {
-      return { name: "Quack Attack", price: 6, split: { adrian: 6 }, details: ["Hotdog"] };
-    }
-    if (type === "Asada Fries") {
-      return { name: "Asada Fries", price: 10, split: { adrian: 10 }, details: ["Hotdog"] };
-    }
+    if (type === "Bacon Dog") return { name: "Bacon Dog", price: 5, split: { adrian: 5 }, details: ["Hotdog"] };
+    if (type === "Quack Attack") return { name: "Quack Attack", price: 6, split: { adrian: 6 }, details: ["Hotdog"] };
+    if (type === "Asada Fries") return { name: "Asada Fries", price: 10, split: { adrian: 10 }, details: ["Hotdog"] };
   }
 
   if (builder.category === "combo") {
     const combo = builder.data.comboType;
     if (!combo) return null;
 
-    if (combo === "#1 Classic + Hotdog") {
-      return { name: combo, price: 10, split: { adrian: 5, nana: 5 }, details: [combo] };
-    }
-    if (combo === "#1 Speciality + Hotdog") {
-      return { name: combo, price: 12, split: { adrian: 5, nana: 7 }, details: [combo] };
-    }
-    if (combo === "#2 Classic + Bite Stack") {
-      return { name: combo, price: 10, split: { mom: 5, nana: 5 }, details: [combo] };
-    }
-    if (combo === "#2 Speciality + Bite Stack") {
-      return { name: combo, price: 12, split: { mom: 5, nana: 7 }, details: [combo] };
-    }
+    if (combo === "#1 Classic + Hotdog") return { name: combo, price: 10, split: { adrian: 5, nana: 5 }, details: [combo] };
+    if (combo === "#1 Speciality + Hotdog") return { name: combo, price: 12, split: { adrian: 5, nana: 7 }, details: [combo] };
+    if (combo === "#2 Classic + Bite Stack") return { name: combo, price: 10, split: { mom: 5, nana: 5 }, details: [combo] };
+    if (combo === "#2 Speciality + Bite Stack") return { name: combo, price: 12, split: { mom: 5, nana: 7 }, details: [combo] };
   }
 
   if (builder.category === "lemonade") {
@@ -483,7 +481,6 @@ function buildReviewObject() {
     });
 
     if (addons.length) details.push(...addons);
-
     return { name, price, split, details };
   }
 
