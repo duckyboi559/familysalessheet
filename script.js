@@ -186,22 +186,39 @@ function isSelectedInArray(key, value) {
   return Array.isArray(builder.data[key]) && builder.data[key].includes(value);
 }
 
+function escapeForSingleQuote(str) {
+  return String(str)
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'");
+}
+
 function renderChoiceButtons(items, key, isArray = false, maxCount = null) {
   return `
     <div class="choice-grid">
-      ${items.map(item => `
-        <button
-          type="button"
-          class="choice-btn ${isArray ? (isSelectedInArray(key, item) ? "selected" : "") : (isSelected(key, item) ? "selected" : "")}"
-          onclick="${isArray ? `toggleBuilderArrayValue('${key}', ${JSON.stringify(item)}, ${maxCount === null ? 'null' : maxCount})` : `setBuilderValue('${key}', ${JSON.stringify(item)})`}"
-        >
-          ${item}
-        </button>
-      `).join("")}
+      ${items.map(item => {
+        const safeItem = escapeForSingleQuote(item);
+
+        const selectedClass = isArray
+          ? (isSelectedInArray(key, item) ? "selected" : "")
+          : (isSelected(key, item) ? "selected" : "");
+
+        const clickCode = isArray
+          ? `toggleBuilderArrayValue('${key}', '${safeItem}', ${maxCount === null ? "null" : maxCount})`
+          : `setBuilderValue('${key}', '${safeItem}')`;
+
+        return `
+          <button
+            type="button"
+            class="choice-btn ${selectedClass}"
+            onclick="${clickCode}"
+          >
+            ${item}
+          </button>
+        `;
+      }).join("")}
     </div>
   `;
 }
-
 function renderBuilder() {
   const stage = document.getElementById("builderStage");
   if (!stage) return;
