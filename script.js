@@ -83,7 +83,7 @@ const FRUITS = [
   "Bananas"
 ];
 
-const STORAGE_KEY = "family_builder_pos_v2_repeat_edit";
+const STORAGE_KEY = "family_builder_pos_v4_final";
 
 let state = loadState();
 
@@ -102,9 +102,11 @@ function loadState() {
         cashTotal: 0,
         digitalTotal: 0,
         paidOrders: [],
+        savedDays: [],
         nextOrderNumber: 1
       };
     }
+
     const parsed = JSON.parse(raw);
     return {
       orderItems: parsed.orderItems || [],
@@ -112,6 +114,7 @@ function loadState() {
       cashTotal: parsed.cashTotal || 0,
       digitalTotal: parsed.digitalTotal || 0,
       paidOrders: parsed.paidOrders || [],
+      savedDays: parsed.savedDays || [],
       nextOrderNumber: parsed.nextOrderNumber || 1
     };
   } catch {
@@ -121,6 +124,7 @@ function loadState() {
       cashTotal: 0,
       digitalTotal: 0,
       paidOrders: [],
+      savedDays: [],
       nextOrderNumber: 1
     };
   }
@@ -708,6 +712,7 @@ function repeatLastOrder() {
 function updateUI() {
   renderOrderList();
   renderPaidOrders();
+  renderSavedDays();
 
   const split = getOrderSplit();
   const total = state.orderItems.reduce((sum, item) => sum + item.price, 0);
@@ -812,16 +817,13 @@ function checkoutSplitCustom() {
   const digital = Number((total - cash).toFixed(2));
   finalizeCheckout(Number(cash.toFixed(2)), digital, "Split Custom");
 }
+
 function saveDay() {
   const totalToday = state.cashTotal + state.digitalTotal;
 
   if (totalToday === 0 && state.paidOrders.length === 0) {
     alert("Nothing to save yet.");
     return;
-  }
-
-  if (!state.savedDays) {
-    state.savedDays = [];
   }
 
   state.savedDays.push({
@@ -844,7 +846,6 @@ function saveDay() {
 
   saveState();
   updateUI();
-  renderSavedDays();
 
   alert("Day saved.");
 }
