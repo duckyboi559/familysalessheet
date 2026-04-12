@@ -13,6 +13,25 @@
       <p class="subtitle">Tap items, then choose payment</p>
     </header>
 
+    <section class="summary-grid">
+      <div class="card summary-card">
+        <h2>Current Order #</h2>
+        <div class="big-number" id="currentOrderNumber">1</div>
+      </div>
+
+      <div class="card summary-card">
+        <h2>Orders Today</h2>
+        <div class="big-number" id="ordersTodayCount">0</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Last Order</h2>
+      <div id="lastOrderCard" class="last-order-card">
+        <p>No paid orders yet.</p>
+      </div>
+    </section>
+
     <section class="section-card">
       <h2 class="section-title">Adrian • Hotdogs</h2>
       <div class="grid">
@@ -238,23 +257,16 @@
       </div>
     </section>
 
-    <section class="summary-grid">
-      <div class="card summary-card">
-        <h2>Weekly Top Seller</h2>
-        <div class="top-seller" id="weeklyTopSeller">None yet</div>
-      </div>
-
-      <div class="card summary-card">
-        <h2>Today's Date</h2>
-        <div class="top-seller" id="todayDate"></div>
-      </div>
-    </section>
-
     <section class="card">
       <div class="save-row">
         <button class="save-btn" onclick="saveDay()">Save Day</button>
         <button class="reset-btn" onclick="resetDay()">Reset Day</button>
       </div>
+    </section>
+
+    <section class="card">
+      <h2>Today’s Orders</h2>
+      <div id="todayOrdersList" class="history-list"></div>
     </section>
 
     <section class="card">
