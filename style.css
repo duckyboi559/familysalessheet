@@ -116,6 +116,14 @@ body {
   background: linear-gradient(to bottom, rgba(122, 70, 38, 0.28), rgba(122, 70, 38, 0.58));
 }
 
+.combo-tile::before {
+  background-image: url("images/combos.png");
+}
+
+.combo-tile::after {
+  background: linear-gradient(to bottom, rgba(90, 52, 130, 0.28), rgba(90, 52, 130, 0.58));
+}
+
 .addon-tile {
   background: linear-gradient(to bottom, #fff1f7, #ffd8e8);
   color: var(--pink-5);
