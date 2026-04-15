@@ -979,3 +979,20 @@ function renderSavedDays() {
 renderBuilder();
 renderReview();
 updateUI();
+const liveTestRef = ref(db, "liveTest/message");
+
+function writeLiveTest() {
+  set(liveTestRef, {
+    text: "Hello from Firebase",
+    updatedAt: Date.now()
+  });
+}
+
+function watchLiveTest() {
+  onValue(liveTestRef, (snapshot) => {
+    const data = snapshot.val();
+    console.log("LIVE TEST:", data);
+  });
+}
+
+watchLiveTest();
