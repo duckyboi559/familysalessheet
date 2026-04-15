@@ -938,13 +938,12 @@ renderReview();
 updateUI();
 const liveTestRef = ref(db, "liveTest/message");
 
-function writeLiveTest() {
+window.writeLiveTest = function () {
   set(liveTestRef, {
     text: "Hello from Firebase",
     updatedAt: Date.now()
   });
-}
-
+};
 function watchLiveTest() {
   onValue(liveTestRef, (snapshot) => {
     const data = snapshot.val();
