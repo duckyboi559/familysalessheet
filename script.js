@@ -948,7 +948,16 @@ function watchLiveTest() {
   onValue(liveTestRef, (snapshot) => {
     const data = snapshot.val();
     console.log("LIVE TEST:", data);
+
+    const box = document.getElementById("liveTestBox");
+    if (!box) return;
+
+    if (!data) {
+      box.textContent = "Waiting...";
+      return;
+    }
+
+    box.textContent = data.text;
   });
 }
-
 watchLiveTest();
