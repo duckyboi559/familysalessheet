@@ -1651,3 +1651,7 @@ function attachLiveListeners() {
 
 attachLiveListeners();
 renderScreen();
+// Auto refresh so handed-out orders disappear
+setInterval(() => {
+  renderScreen();
+}, 5000);
