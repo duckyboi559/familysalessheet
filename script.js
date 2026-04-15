@@ -1,93 +1,265 @@
-
- // Import the functions you need from the SDKs you need 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js"; 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
   getDatabase,
   ref,
   push,
   set,
-  onValue
+  update,
+  remove,
+  onValue,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
-// TODO: Add SDKs for Firebase products that you want to use 
-// https://firebase.google.com/docs/web/setup#available-libraries 
-// Your web app's Firebase configuration 
-const firebaseConfig = { 
-apiKey: "AIzaSyDMhniulSEmiIWoXzwJy6zVSOZkHELhfLc", 
-authDomain: "family-sales.firebaseapp.com", 
-databaseURL: "https://family-sales-default-rtdb.firebaseio.com", 
-projectId: "family-sales", 
-storageBucket: "family-sales.firebasestorage.app", 
- messagingSenderId: "590845027956", 
-appId: "1:590845027956:web:676df074fe6150e8d39321" 
 
- }; 
-// Initialize Firebase 
+/* ========= FIREBASE CONFIG ========= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDMhniulSEmiIWoXzwJy6zVSOZkHELhfLc", 
+ authDomain: "family-sales.firebaseapp.com", 
+ databaseURL: "https://family-sales-default-rtdb.firebaseio.com", projectId: "family-sales", 
+ storageBucket: "family-sales.firebasestorage.app", 
+ messagingSenderId: "590845027956",
+ appId: "1:590845027956:web:676df074fe6150e8d39321"
+};
 
- 
-
-  const app = initializeApp(firebaseConfig); 
+const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
- 
 
-
+/* ========= DATA ========= */
 const REGULAR_FLAVORS = [
-  "Blackberry", "Blue Raspberry", "Cherry", "Coconut", "Dragon Fruit",
-  "Green Apple", "Lychee", "Mango", "Passion Fruit", "Peach",
-  "Pineapple", "Pomegranate", "Raspberry", "Strawberry", "Vanilla", "Watermelon"
-];
-
-const SPECIALTY_DRINKS = [
-  "Cali Sunset",
-  "Cherry Limeade",
-  "Cherry Bomb",
-  "Fun Dip",
+  "Blackberry",
+  "Blue Raspberry",
+  "Cherry",
+  "Coconut",
+  "Dragon Fruit",
   "Green Apple",
-  "Lychee Berry Twist",
-  "Mango Tajin",
-  "Melon Berry",
-  "Marry Me",
-  "Mr. Dill",
-  "Pink Paradise",
-  "Peachy Pop Explosion",
-  "Peachy Princess",
-  "Shark Attack",
-  "Shimmer Berry Bliss",
-  "Strawberry Bliss",
-  "Triple Berry Blast",
-  "Watermelon Lychee Splash"
+  "Lychee",
+  "Mango",
+  "Passion Fruit",
+  "Peach",
+  "Pineapple",
+  "Pomegranate",
+  "Raspberry",
+  "Strawberry",
+  "Vanilla",
+  "Watermelon"
 ];
 
-const SF_DRINKS = [
-  "Coconut SF",
-  "Mango SF",
-  "Peach SF",
-  "Strawberry SF",
-  "Watermelon SF"
-];
+const SPECIALTY_DRINKS = {
+  "Bahama Mama": [
+    "Watermelon",
+    "Mango",
+    "Pineapple",
+    "Watermelon Gummies",
+    "Neon Worms",
+    "Rings"
+  ],
+  "Cali Sunset": [
+    "Mango",
+    "Pineapple",
+    "Pomegranate",
+    "Rings",
+    "Neon Worms",
+    "Pineapple Gummies"
+  ],
+  "Cherry Limeade": [
+    "Cherry",
+    "Cherries",
+    "Rings",
+    "Cherry Gummies",
+    "Neon Worms"
+  ],
+  "Cherry Bomb": [
+    "Cherry",
+    "Pomegranate",
+    "Cherries",
+    "Rings",
+    "Cherry Gummies",
+    "Neon Worms"
+  ],
+  "Fun Dip": [
+    "Blue Raspberry",
+    "Green Apple",
+    "Fun Dip",
+    "Green Apple Rings",
+    "Raspberry Rim",
+    "Nerds",
+    "Rainbow Belts",
+    "Nerd Clusters"
+  ],
+  "Green Apple": [
+    "Green Apple",
+    "Caramel Drizzle",
+    "Apple Slices",
+    "Green Apple Rings",
+    "Caramel Apple Lollipop"
+  ],
+  "Lychee Berry Twist": [
+    "Lychee",
+    "Strawberry",
+    "Fresh Strawberries",
+    "Boba",
+    "Rings"
+  ],
+  "Mangonada": [
+    "Mangonada",
+    "Mango Chunks",
+    "Chamoy Rim",
+    "Chilito Powder",
+    "Mango Gummies",
+    "Tamarindo Stick"
+  ],
+  "Melon Berry": [
+    "Watermelon",
+    "Strawberry",
+    "Fresh Strawberry",
+    "Chamoy",
+    "Chilito Powder",
+    "Salsagheti",
+    "Tamarindo Stick"
+  ],
+  "Marry Me": [
+    "Peach",
+    "Strawberry",
+    "Peach Rings",
+    "Ring Pop"
+  ],
+  "Mr. Dill": [
+    "Chamoy Rim",
+    "Pickle Juice",
+    "Pickle Chunks",
+    "Chilito Powder",
+    "Tamarindo Stick"
+  ],
+  "Peachy Princess": [
+    "Strawberry",
+    "Peach",
+    "Coconut",
+    "Peach Rings",
+    "Neon Worms",
+    "Peach Gummies"
+  ],
+  "Pink Paradise": [
+    "Pineapple",
+    "Strawberry",
+    "Rings",
+    "Neon Worms",
+    "Strawberry Gummies"
+  ],
+  "Shark Attack": [
+    "Blue Raspberry",
+    "Coconut",
+    "Grenadine",
+    "Blue Raspberry Chamoy Rim",
+    "Neon Worms",
+    "Gummy Sharks",
+    "Tamarindo Stick"
+  ],
+  "Strawberry Bliss": [
+    "Strawberry",
+    "Fresh Strawberries",
+    "Rings",
+    "Neon Worms",
+    "Strawberry Gummies"
+  ],
+  "Triple Berry Blast": [
+    "Blackberry",
+    "Strawberry",
+    "Raspberry",
+    "Sour Belts",
+    "Nerd Clusters"
+  ],
+  "Watermelon Lychee Splash": [
+    "Watermelon",
+    "Lychee",
+    "Popping Boba",
+    "Watermelon Gummies",
+    "Sour Belts"
+  ]
+};
 
-const CREAMY_DRINKS = [
-  "Blue Cream Dream",
-  "Brazilian Limeade",
-  "Cherries & Cream",
-  "Mango Dragon Splash",
-  "Peaches & Cream",
-  "Piña Colada",
-  "Pink Dragon",
-  "Strawberries & Cream"
-];
+const CREAMY_DRINKS = {
+  "Blue Cream Dream": [
+    "Blue Raspberry",
+    "Sweet Cream",
+    "Popping Boba",
+    "Blue Raspberry Rings",
+    "Neon Worms"
+  ],
+  "Brazilian Limeade": [
+    "Limeade Base",
+    "Sweetened Condensed Milk",
+    "Gummy Rings",
+    "Neon Worms"
+  ],
+  "Cherries & Creme": [
+    "Cherry",
+    "Sweet Cream",
+    "Cherries",
+    "Cherry Gummies",
+    "Neon Worms"
+  ],
+  "Mango Dragon Splash": [
+    "Dragon Fruit",
+    "Mango",
+    "Sweet Cream",
+    "Dragon Fruit Chunks",
+    "Rings",
+    "Neon Worms",
+    "Mango Gummies"
+  ],
+  "Peaches N Cream": [
+    "Peach",
+    "Dole Peaches",
+    "Sweet Cream",
+    "Peach Rings",
+    "Peach Gummies",
+    "Neon Worms"
+  ],
+  "Piña Colada": [
+    "Pineapple",
+    "Coconut",
+    "Sweet Cream",
+    "Pineapple Chunks",
+    "Maraschino Cherries",
+    "Pineapple Rings"
+  ],
+  "Pink Dragon": [
+    "Dragon Fruit",
+    "Passion Fruit",
+    "Sweet Cream",
+    "Rings",
+    "Neon Worms"
+  ],
+  "Strawberries N Cream": [
+    "Strawberry",
+    "Condensed Milk",
+    "Fresh Strawberries",
+    "Strawberry Rings",
+    "Strawberry Gummies",
+    "Neon Worms"
+  ]
+};
 
-const STACKED_BUILDS = [
-  "Classic #1",
-  "Classic #2",
-  "Churro Overload",
-  "Oreo Banana Dulce",
-  "Dubai Chocolate",
-  "Oreo Overload",
-  "Tres Leches",
-  "S'mores"
-];
+const SUGAR_FREE_DRINKS = {
+  "Island Splash": ["Coconut SF", "Mango SF", "Peach SF"],
+  "Peachy Princess": ["Coconut SF", "Peach SF", "Strawberry SF"],
+  "Sweet Peach Bliss": ["Peach SF", "Mango SF"],
+  "Sunset Splash": ["Peach SF", "Strawberry SF"],
+  "Tigers Blood": ["Coconut SF", "Strawberry SF", "Peach SF"],
+  "Watermelon Sugar": ["Strawberry SF", "Watermelon SF"]
+};
 
-const TOPPINGS = [
+const STACKED_BUILDS = {
+  "Classic #1": ["Strawberries", "Bananas", "Powder Sugar", "Syrup"],
+  "Classic #2": ["Strawberries", "Bananas", "Lechera", "Nutella", "Powder Sugar"],
+  "Churro Overload": ["Cinnamon Sugar", "Cajeta", "Lechera", "Strawberries"],
+  "Oreo Banana Dulce": ["Bananas", "Oreos", "Cajeta", "Lechera"],
+  "Dubai Chocolate": ["Strawberries", "Crushed Pistachio", "Pistachio Cream", "Chocolate Drizzle", "Kataifi"],
+  "Oreo Overload": ["Oreos", "Lechera", "Nutella", "Strawberries"],
+  "Tres Leches": ["Tres Leches", "Nutella", "Lechera", "Strawberries", "Pecans"],
+  "S'mores": ["Hershey Syrup", "Graham Cracker", "Mini Marshmallows", "Chocolate Chunks"]
+};
+
+const PANCAKE_TOPPINGS = [
   "Powder Sugar",
   "Almonds",
   "Mazapan",
@@ -101,7 +273,7 @@ const TOPPINGS = [
   "English Toffee Bits"
 ];
 
-const DRIZZLES = [
+const PANCAKE_DRIZZLES = [
   "Cajeta",
   "Lechera",
   "Nutella",
@@ -110,458 +282,878 @@ const DRIZZLES = [
   "Hershey"
 ];
 
-const FRUITS = [
-  "Strawberries",
-  "Bananas"
-];
+const PANCAKE_FRUITS = ["Strawberries", "Bananas"];
 
-const STORAGE_KEY = "family_builder_pos_v4_final";
+const HOTDOG_CHOICES = ["Ketchup", "Mustard", "Mayo", "Grilled Onions", "Hot Cheetos"];
+const FRIES_CHOICES = ["Sour Cream", "Salsa", "Pico de Gallo", "Duck Sauce", "Cheese"];
+const FRIES_MEAT_CHOICES = ["Regular Meat", "Extra Meat +$3", "Double Meat +$5"];
 
-let state = loadState();
-
-let builder = {
-  category: null,
-  data: {}
+/* ========= STATE ========= */
+let liveState = {
+  meta: { nextOrderNumber: 1 },
+  openOrders: {},
+  paidOrders: {},
+  handedOutOrders: {},
+  days: {}
 };
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return {
-        orderItems: [],
-        ownerTotals: { adrian: 0, nana: 0, mom: 0 },
-        cashTotal: 0,
-        digitalTotal: 0,
-        paidOrders: [],
-        savedDays: [],
-        nextOrderNumber: 1
-      };
-    }
+let draftItems = [];
+let builder = { category: null, data: {} };
+let editingDraftIndex = null;
+let editingOpenOrderKey = null;
+let selectedHistoryDay = null;
 
-    const parsed = JSON.parse(raw);
-    return {
-      orderItems: parsed.orderItems || [],
-      ownerTotals: parsed.ownerTotals || { adrian: 0, nana: 0, mom: 0 },
-      cashTotal: parsed.cashTotal || 0,
-      digitalTotal: parsed.digitalTotal || 0,
-      paidOrders: parsed.paidOrders || [],
-      savedDays: parsed.savedDays || [],
-      nextOrderNumber: parsed.nextOrderNumber || 1
-    };
-  } catch {
-    return {
-      orderItems: [],
-      ownerTotals: { adrian: 0, nana: 0, mom: 0 },
-      cashTotal: 0,
-      digitalTotal: 0,
-      paidOrders: [],
-      savedDays: [],
-      nextOrderNumber: 1
-    };
-  }
-}
-
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function formatMoney(n) {
-  return `$${Number(n).toFixed(2)}`;
-}
-
-function playTap() {
-  try {
-    const audio = new Audio("sounds/tap.mp3");
-    audio.play().catch(() => {});
-  } catch {}
+/* ========= HELPERS ========= */
+function formatMoney(value) {
+  return `$${Number(value || 0).toFixed(2)}`;
 }
 
 function escapeForSingleQuote(str) {
-  return String(str)
-    .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'");
+  return String(str).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
-function startBuilder(category) {
-  builder = { category, data: {} };
-  renderBuilder();
-  renderReview();
-  playTap();
+function nowLabel() {
+  return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-function clearBuilder() {
-  builder = { category: null, data: {} };
-  renderBuilder();
-  renderReview();
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function setBuilderValue(key, value) {
-  builder.data[key] = value;
-  renderBuilder();
-  renderReview();
-  playTap();
+function todayLabel() {
+  return new Date().toLocaleDateString();
 }
 
-function toggleBuilderArrayValue(key, value, maxCount = null) {
-  if (!builder.data[key]) builder.data[key] = [];
-  const arr = builder.data[key];
-  const idx = arr.indexOf(value);
-
-  if (idx >= 0) {
-    arr.splice(idx, 1);
-  } else {
-    if (maxCount && arr.length >= maxCount) return;
-    arr.push(value);
-  }
-
-  renderBuilder();
-  renderReview();
-  playTap();
+function ownerBlank() {
+  return { adrian: 0, jessica: 0, janie: 0 };
 }
 
-function isSelected(key, value) {
-  return builder.data[key] === value;
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
 }
 
-function isSelectedInArray(key, value) {
-  return Array.isArray(builder.data[key]) && builder.data[key].includes(value);
+function sumOwnerTotals(list) {
+  const out = ownerBlank();
+  list.forEach(item => {
+    out.adrian += item.ownerTotals?.adrian || 0;
+    out.jessica += item.ownerTotals?.jessica || 0;
+    out.janie += item.ownerTotals?.janie || 0;
+  });
+  return out;
 }
 
-function renderChoiceButtons(items, key, isArray = false, maxCount = null) {
+function totalsFromOrders(ordersObject) {
+  const list = Object.values(ordersObject || {});
+  let cash = 0;
+  let cashApp = 0;
+  let applePay = 0;
+  let square = 0;
+  const owners = ownerBlank();
+
+  list.forEach(order => {
+    owners.adrian += order.ownerTotals?.adrian || 0;
+    owners.jessica += order.ownerTotals?.jessica || 0;
+    owners.janie += order.ownerTotals?.janie || 0;
+
+    if (order.payment?.type === "cash") {
+      cash += Number(order.payment.total || 0);
+    }
+    if (order.payment?.type === "digital") {
+      if (order.payment.method === "Cash App") cashApp += Number(order.payment.total || 0);
+      if (order.payment.method === "Apple Pay") applePay += Number(order.payment.total || 0);
+      if (order.payment.method === "Square") square += Number(order.payment.total || 0);
+    }
+    if (order.payment?.type === "split") {
+      cash += Number(order.payment.cashAmount || 0);
+      if (order.payment.digitalMethod === "Cash App") cashApp += Number(order.payment.digitalAmount || 0);
+      if (order.payment.digitalMethod === "Apple Pay") applePay += Number(order.payment.digitalAmount || 0);
+      if (order.payment.digitalMethod === "Square") square += Number(order.payment.digitalAmount || 0);
+    }
+  });
+
+  return {
+    cash,
+    cashApp,
+    applePay,
+    square,
+    dayTotal: cash + cashApp + applePay + square,
+    owners
+  };
+}
+
+function getCombinedPaidAndHanded() {
+  return {
+    ...liveState.paidOrders,
+    ...liveState.handedOutOrders
+  };
+}
+
+function choiceButtons(items, key, isMulti = false) {
   return `
     <div class="choice-grid">
       ${items.map(item => {
-        const safeItem = escapeForSingleQuote(item);
-        const selectedClass = isArray
-          ? (isSelectedInArray(key, item) ? "selected" : "")
-          : (isSelected(key, item) ? "selected" : "");
+        const selected = isMulti
+          ? (Array.isArray(builder.data[key]) && builder.data[key].includes(item))
+          : builder.data[key] === item;
 
-        const clickCode = isArray
-          ? `toggleBuilderArrayValue('${key}', '${safeItem}', ${maxCount === null ? "null" : maxCount})`
-          : `setBuilderValue('${key}', '${safeItem}')`;
+        const safe = escapeForSingleQuote(item);
+        const cls = selected ? `choice-btn selected ${isMulti ? "multi-selected" : ""}` : "choice-btn";
 
-        return `
-          <button
-            type="button"
-            class="choice-btn ${selectedClass}"
-            onclick="${clickCode}"
-          >
-            ${item}
-          </button>
-        `;
+        const click = isMulti
+          ? `toggleBuilderArray('${key}', '${safe}')`
+          : `setBuilderValue('${key}', '${safe}')`;
+
+        return `<button type="button" class="${cls}" onclick="${click}">${item}</button>`;
       }).join("")}
     </div>
   `;
 }
 
-function renderBuilder() {
-  const stage = document.getElementById("builderStage");
-  if (!stage) return;
+/* ========= ROUTING ========= */
+function renderScreen() {
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get("view");
 
-  if (!builder.category) {
-    stage.innerHTML = "<p>Pick a category to begin.</p>";
-    return;
-  }
+  document.getElementById("mainScreen").classList.toggle("hidden", view === "history");
+  document.getElementById("historyScreen").classList.toggle("hidden", view !== "history");
 
-  if (builder.category === "hotdog") {
-    stage.innerHTML = `
-      <h3>Hotdogs</h3>
-      <p class="helper">Pick one item.</p>
-      ${renderChoiceButtons(["Bacon Dog", "Quack Attack", "Asada Fries"], "hotdogType")}
-    `;
-    return;
-  }
-
-  if (builder.category === "combo") {
-    stage.innerHTML = `
-      <h3>Combos</h3>
-      ${renderChoiceButtons([
-        "#1 Classic + Hotdog",
-        "#1 Speciality + Hotdog",
-        "#2 Classic + Bite Stack",
-        "#2 Speciality + Bite Stack"
-      ], "comboType")}
-    `;
-    return;
-  }
-
-  if (builder.category === "lemonade") {
-    let html = `
-      <h3>Lemonade</h3>
-      <h4>1. Choose type</h4>
-      ${renderChoiceButtons([
-        "Classic",
-        "Flavor",
-        "Specialty",
-        "Sugar Free",
-        "Creamy",
-        "Red Bull",
-        "64oz Classic",
-        "64oz Specialty"
-      ], "lemonadeType")}
-    `;
-
-    const type = builder.data.lemonadeType;
-
-    if (type === "Flavor") {
-      html += `
-        <h4>2. Choose flavor</h4>
-        ${renderChoiceButtons(REGULAR_FLAVORS, "flavorName")}
-      `;
-    }
-
-    if (type === "Specialty") {
-      html += `
-        <h4>2. Choose specialty</h4>
-        ${renderChoiceButtons(SPECIALTY_DRINKS, "specialtyName")}
-      `;
-    }
-
-    if (type === "64oz Specialty") {
-      html += `
-        <h4>2. Choose 64oz specialty</h4>
-        ${renderChoiceButtons(SPECIALTY_DRINKS, "specialty64Name")}
-      `;
-    }
-
-    if (type === "Sugar Free") {
-      html += `
-        <h4>2. Choose sugar free flavor</h4>
-        ${renderChoiceButtons(SF_DRINKS, "sfName")}
-      `;
-    }
-
-    if (type === "Creamy") {
-      html += `
-        <h4>2. Choose creamy drink</h4>
-        ${renderChoiceButtons(CREAMY_DRINKS, "creamyName")}
-      `;
-    }
-
-    if (type === "Red Bull") {
-      html += `
-        <h4>2. Choose flavor</h4>
-        ${renderChoiceButtons(REGULAR_FLAVORS, "redBullFlavor")}
-      `;
-    }
-
-    if (type) {
-      html += `
-        <h4>3. Add-ons</h4>
-        ${renderChoiceButtons(["Boba +$1", "Creamy +$1"], "lemonadeAddons", true)}
-      `;
-    }
-
-    stage.innerHTML = html;
-    return;
-  }
-
-  if (builder.category === "pancake") {
-    let html = `
-      <h3>Mini Pancakes</h3>
-      <h4>1. Choose type</h4>
-      ${renderChoiceButtons(["Stack'd", "Your Way", "Bite Stack", "Dubai Strawberries"], "pancakeMode")}
-    `;
-
-    const mode = builder.data.pancakeMode;
-
-    if (mode === "Stack'd") {
-      html += `
-        <h4>2. Choose size</h4>
-        ${renderChoiceButtons(["20", "25", "30"], "stackedSize")}
-      `;
-
-      if (builder.data.stackedSize) {
-        html += `
-          <h4>3. Choose build</h4>
-          ${renderChoiceButtons(STACKED_BUILDS, "stackedBuild")}
-        `;
-      }
-    }
-
-    if (mode === "Your Way") {
-      html += `
-        <h4>2. Choose size</h4>
-        ${renderChoiceButtons(["20", "25", "30"], "yourWaySize")}
-      `;
-
-      if (builder.data.yourWaySize) {
-        html += `
-          <h4>3. Pick up to 2 toppings</h4>
-          ${renderChoiceButtons(TOPPINGS, "yourWayToppings", true, 2)}
-          <h4>4. Pick 1 drizzle</h4>
-          ${renderChoiceButtons(DRIZZLES, "yourWayDrizzle")}
-          <h4>5. Pick 1 fruit</h4>
-          ${renderChoiceButtons(FRUITS, "yourWayFruit")}
-        `;
-      }
-    }
-
-    if (mode === "Bite Stack") {
-      html += `
-        <h4>2. Pick 1 topping</h4>
-        ${renderChoiceButtons(TOPPINGS, "biteTopping")}
-        <h4>3. Pick 1 drizzle</h4>
-        ${renderChoiceButtons(DRIZZLES, "biteDrizzle")}
-        <h4>4. Pick 1 fruit</h4>
-        ${renderChoiceButtons(FRUITS, "biteFruit")}
-      `;
-    }
-
-    stage.innerHTML = html;
+  if (view === "history") {
+    const day = params.get("day");
+    selectedHistoryDay = day || null;
+    renderHistoryScreen();
+  } else {
+    renderMainScreen();
   }
 }
 
-function buildReviewObject() {
-  if (!builder.category) return null;
+window.goHome = function () {
+  history.pushState({}, "", window.location.pathname);
+  renderScreen();
+};
 
-  if (builder.category === "hotdog") {
-    const type = builder.data.hotdogType;
-    if (!type) return null;
+window.goHistory = function () {
+  history.pushState({}, "", `${window.location.pathname}?view=history`);
+  renderScreen();
+};
 
-    if (type === "Bacon Dog") return { name: "Bacon Dog", price: 5, split: { adrian: 5 }, details: ["Hotdog"] };
-    if (type === "Quack Attack") return { name: "Quack Attack", price: 6, split: { adrian: 6 }, details: ["Hotdog"] };
-    if (type === "Asada Fries") return { name: "Asada Fries", price: 10, split: { adrian: 10 }, details: ["Hotdog"] };
+window.selectHistoryDay = function (dayKey) {
+  history.pushState({}, "", `${window.location.pathname}?view=history&day=${encodeURIComponent(dayKey)}`);
+  renderScreen();
+};
+
+window.addEventListener("popstate", renderScreen);
+
+/* ========= BUILDER CONTROL ========= */
+window.startBuilder = function (category) {
+  builder = { category, data: {} };
+  editingDraftIndex = null;
+  renderBuilder();
+  renderReview();
+};
+
+window.clearBuilder = function () {
+  builder = { category: null, data: {} };
+  editingDraftIndex = null;
+  renderBuilder();
+  renderReview();
+};
+
+window.setBuilderValue = function (key, value) {
+  builder.data[key] = value;
+  renderBuilder();
+  renderReview();
+};
+
+window.toggleBuilderArray = function (key, value) {
+  if (!Array.isArray(builder.data[key])) builder.data[key] = [];
+  const arr = builder.data[key];
+  const idx = arr.indexOf(value);
+
+  if (idx >= 0) arr.splice(idx, 1);
+  else arr.push(value);
+
+  renderBuilder();
+  renderReview();
+};
+
+function renderBuilder() {
+  const el = document.getElementById("builderStage");
+  if (!el) return;
+
+  if (!builder.category) {
+    el.innerHTML = `<p>Pick a category to begin.</p>`;
+    return;
+  }
+
+  if (builder.category === "adrian") {
+    let html = `
+      <h3>Adrian Menu</h3>
+      <h4>1. Choose item</h4>
+      ${choiceButtons([
+        "Bacon Dog",
+        "Quack Attack",
+        "Asada Fries",
+        "Cheeto Fries",
+        "Small Fry Tray",
+        "Big Fry Tray"
+      ], "itemType")}
+    `;
+
+    const itemType = builder.data.itemType;
+
+    if (itemType) {
+      html += `
+        <h4>2. Quantity</h4>
+        ${choiceButtons(["1", "2", "3", "4", "5"], "quantity")}
+      `;
+    }
+
+    if (builder.data.quantity && (itemType === "Bacon Dog" || itemType === "Quack Attack")) {
+      html += `
+        <h4>3. Condiments / Extras</h4>
+        ${choiceButtons(HOTDOG_CHOICES, "condiments", true)}
+      `;
+    }
+
+    if (builder.data.quantity && (itemType === "Asada Fries" || itemType === "Cheeto Fries")) {
+      html += `
+        <h4>3. Toppings</h4>
+        ${choiceButtons(FRIES_CHOICES, "friesToppings", true)}
+        <h4>4. Meat Option</h4>
+        ${choiceButtons(FRIES_MEAT_CHOICES, "meatOption")}
+      `;
+    }
+
+    el.innerHTML = html;
+    return;
+  }
+
+  if (builder.category === "jessica") {
+    let html = `
+      <h3>Jessica Menu</h3>
+      <h4>1. Choose item</h4>
+      ${choiceButtons([
+        "Stack'd",
+        "Your Way",
+        "Bite Stack"
+      ], "pancakeType")}
+    `;
+
+    const type = builder.data.pancakeType;
+
+    if (type === "Stack'd") {
+      html += `
+        <h4>2. Size</h4>
+        ${choiceButtons(["20 Minis", "25 Minis", "30 Minis"], "stackedSize")}
+      `;
+      if (builder.data.stackedSize) {
+        html += `
+          <h4>3. Build</h4>
+          ${choiceButtons(Object.keys(STACKED_BUILDS), "stackedBuild")}
+        `;
+        if (builder.data.stackedBuild) {
+          const ingredients = STACKED_BUILDS[builder.data.stackedBuild];
+          html += `
+            <h4>Ingredients</h4>
+            <div class="review-card">
+              ${ingredients.map(i => `<p>${i}</p>`).join("")}
+            </div>
+          `;
+        }
+      }
+      html += `
+        <h4>4. Quantity</h4>
+        ${choiceButtons(["1", "2", "3", "4"], "quantity")}
+      `;
+    }
+
+    if (type === "Your Way") {
+      html += `
+        <h4>2. Size</h4>
+        ${choiceButtons(["20 Minis", "25 Minis", "30 Minis"], "yourWaySize")}
+      `;
+      if (builder.data.yourWaySize) {
+        html += `
+          <h4>3. Toppings</h4>
+          ${choiceButtons(PANCAKE_TOPPINGS, "yourWayToppings", true)}
+          <h4>4. Drizzles</h4>
+          ${choiceButtons(PANCAKE_DRIZZLES, "yourWayDrizzles", true)}
+          <h4>5. Fruits</h4>
+          ${choiceButtons(PANCAKE_FRUITS, "yourWayFruits", true)}
+          <h4>6. Quantity</h4>
+          ${choiceButtons(["1", "2", "3", "4"], "quantity")}
+          <p class="helper">No hard limit. Tap as many as needed.</p>
+        `;
+      }
+    }
+
+    if (type === "Bite Stack") {
+      html += `
+        <h4>2. Toppings</h4>
+        ${choiceButtons(PANCAKE_TOPPINGS, "biteToppings", true)}
+        <h4>3. Drizzles</h4>
+        ${choiceButtons(PANCAKE_DRIZZLES, "biteDrizzles", true)}
+        <h4>4. Fruits</h4>
+        ${choiceButtons(PANCAKE_FRUITS, "biteFruits", true)}
+        <h4>5. Quantity</h4>
+        ${choiceButtons(["1", "2", "3", "4"], "quantity")}
+        <p class="helper">No hard limit. Tap as many as needed.</p>
+      `;
+    }
+
+    el.innerHTML = html;
+    return;
+  }
+
+  if (builder.category === "janie") {
+    let html = `
+      <h3>Janie Drinks</h3>
+      <h4>1. Choose item</h4>
+      ${choiceButtons([
+        "Classic Lemonade",
+        "Specialty Lemonade",
+        "64oz Classic",
+        "64oz Specialty",
+        "Creamy Lemonade",
+        "Sugar Free Lemonade",
+        "Red Bull Lemonade",
+        "Sago Small",
+        "Sago Large"
+      ], "drinkType")}
+    `;
+
+    const drinkType = builder.data.drinkType;
+
+    if (drinkType) {
+      html += `
+        <h4>2. Quantity</h4>
+        ${choiceButtons(["1", "2", "3", "4", "5"], "quantity")}
+      `;
+    }
+
+    if (builder.data.quantity && drinkType === "Classic Lemonade") {
+      html += `
+        <h4>3. Flavor Add-On (+$1 optional)</h4>
+        ${choiceButtons(["No Flavor", "Add Flavor +$1"], "classicFlavorMode")}
+      `;
+      if (builder.data.classicFlavorMode === "Add Flavor +$1") {
+        html += `
+          <h4>4. Choose Flavor</h4>
+          ${choiceButtons(REGULAR_FLAVORS, "classicFlavor")}
+        `;
+      }
+    }
+
+    if (builder.data.quantity && drinkType === "64oz Classic") {
+      html += `
+        <h4>3. Flavor Add-On (+$1 optional)</h4>
+        ${choiceButtons(["No Flavor", "Add Flavor +$1"], "classic64FlavorMode")}
+      `;
+      if (builder.data.classic64FlavorMode === "Add Flavor +$1") {
+        html += `
+          <h4>4. Choose Flavor</h4>
+          ${choiceButtons(REGULAR_FLAVORS, "classic64Flavor")}
+        `;
+      }
+    }
+
+    if (builder.data.quantity && drinkType === "Specialty Lemonade") {
+      html += `
+        <h4>3. Choose Specialty</h4>
+        ${choiceButtons(Object.keys(SPECIALTY_DRINKS), "specialtyDrink")}
+      `;
+      if (builder.data.specialtyDrink) {
+        html += `
+          <h4>Ingredients</h4>
+          <div class="review-card">
+            ${SPECIALTY_DRINKS[builder.data.specialtyDrink].map(i => `<p>${i}</p>`).join("")}
+          </div>
+        `;
+      }
+    }
+
+    if (builder.data.quantity && drinkType === "64oz Specialty") {
+      html += `
+        <h4>3. Choose Specialty</h4>
+        ${choiceButtons(Object.keys(SPECIALTY_DRINKS), "specialty64Drink")}
+      `;
+      if (builder.data.specialty64Drink) {
+        html += `
+          <h4>Ingredients</h4>
+          <div class="review-card">
+            ${SPECIALTY_DRINKS[builder.data.specialty64Drink].map(i => `<p>${i}</p>`).join("")}
+          </div>
+        `;
+      }
+    }
+
+    if (builder.data.quantity && drinkType === "Creamy Lemonade") {
+      html += `
+        <h4>3. Choose Creamy Drink</h4>
+        ${choiceButtons(Object.keys(CREAMY_DRINKS), "creamyDrink")}
+      `;
+      if (builder.data.creamyDrink) {
+        html += `
+          <h4>Ingredients</h4>
+          <div class="review-card">
+            ${CREAMY_DRINKS[builder.data.creamyDrink].map(i => `<p>${i}</p>`).join("")}
+          </div>
+        `;
+      }
+    }
+
+    if (builder.data.quantity && drinkType === "Sugar Free Lemonade") {
+      html += `
+        <h4>3. Choose Sugar Free Drink</h4>
+        ${choiceButtons(Object.keys(SUGAR_FREE_DRINKS), "sfDrink")}
+      `;
+      if (builder.data.sfDrink) {
+        html += `
+          <h4>Ingredients</h4>
+          <div class="review-card">
+            ${SUGAR_FREE_DRINKS[builder.data.sfDrink].map(i => `<p>${i}</p>`).join("")}
+          </div>
+        `;
+      }
+    }
+
+    if (builder.data.quantity && drinkType === "Red Bull Lemonade") {
+      html += `
+        <h4>3. Choose Flavor</h4>
+        ${choiceButtons(REGULAR_FLAVORS, "redBullFlavor")}
+      `;
+    }
+
+    el.innerHTML = html;
+    return;
   }
 
   if (builder.category === "combo") {
-    const combo = builder.data.comboType;
-    if (!combo) return null;
+    let html = `
+      <h3>Combos</h3>
+      <h4>1. Choose combo</h4>
+      ${choiceButtons([
+        "#1 Classic Lemonade + Bacon Dog ($10)",
+        "#1 Specialty Lemonade + Bacon Dog ($12)",
+        "#2 Classic Lemonade + Bite Stack Mini Pancakes ($10)",
+        "#2 Specialty Lemonade + Bite Stack Mini Pancakes ($12)"
+      ], "comboType")}
+    `;
 
-    if (combo === "#1 Classic + Hotdog") return { name: combo, price: 10, split: { adrian: 5, nana: 5 }, details: [combo] };
-    if (combo === "#1 Speciality + Hotdog") return { name: combo, price: 12, split: { adrian: 5, nana: 7 }, details: [combo] };
-    if (combo === "#2 Classic + Bite Stack") return { name: combo, price: 10, split: { mom: 5, nana: 5 }, details: [combo] };
-    if (combo === "#2 Speciality + Bite Stack") return { name: combo, price: 12, split: { mom: 5, nana: 7 }, details: [combo] };
+    const comboType = builder.data.comboType;
+
+    if (comboType) {
+      html += `
+        <h4>2. Quantity</h4>
+        ${choiceButtons(["1", "2", "3", "4"], "quantity")}
+      `;
+    }
+
+    if (builder.data.quantity && comboType && comboType.includes("Bacon Dog")) {
+      html += `
+        <h4>3. Hotdog Condiments</h4>
+        ${choiceButtons(HOTDOG_CHOICES, "comboDogCondiments", true)}
+      `;
+      if (comboType.includes("Specialty")) {
+        html += `
+          <h4>4. Choose Specialty Drink</h4>
+          ${choiceButtons(Object.keys(SPECIALTY_DRINKS), "comboSpecialtyDrink")}
+        `;
+        if (builder.data.comboSpecialtyDrink) {
+          html += `
+            <h4>Drink Ingredients</h4>
+            <div class="review-card">
+              ${SPECIALTY_DRINKS[builder.data.comboSpecialtyDrink].map(i => `<p>${i}</p>`).join("")}
+            </div>
+          `;
+        }
+      }
+    }
+
+    if (builder.data.quantity && comboType && comboType.includes("Bite Stack")) {
+      html += `
+        <h4>3. Bite Stack Toppings</h4>
+        ${choiceButtons(PANCAKE_TOPPINGS, "comboBiteToppings", true)}
+        <h4>4. Bite Stack Drizzles</h4>
+        ${choiceButtons(PANCAKE_DRIZZLES, "comboBiteDrizzles", true)}
+        <h4>5. Bite Stack Fruits</h4>
+        ${choiceButtons(PANCAKE_FRUITS, "comboBiteFruits", true)}
+      `;
+      if (comboType.includes("Specialty")) {
+        html += `
+          <h4>6. Choose Specialty Drink</h4>
+          ${choiceButtons(Object.keys(SPECIALTY_DRINKS), "comboSpecialtyDrink2")}
+        `;
+        if (builder.data.comboSpecialtyDrink2) {
+          html += `
+            <h4>Drink Ingredients</h4>
+            <div class="review-card">
+              ${SPECIALTY_DRINKS[builder.data.comboSpecialtyDrink2].map(i => `<p>${i}</p>`).join("")}
+            </div>
+          `;
+        }
+      }
+    }
+
+    el.innerHTML = html;
   }
+}
 
-  if (builder.category === "lemonade") {
-    const type = builder.data.lemonadeType;
+function buildPreviewItem() {
+  const d = builder.data;
+  const qty = Number(d.quantity || 0);
+  if (!builder.category || !qty) return null;
+
+  if (builder.category === "adrian") {
+    const type = d.itemType;
     if (!type) return null;
 
-    let name = "";
-    let price = 0;
-    let details = [];
-    let split = { nana: 0 };
-
-    if (type === "Classic") {
-      name = "Classic Lemonade";
-      price = 6;
-      details = ["Classic"];
-      split.nana = 6;
-    } else if (type === "Flavor") {
-      if (!builder.data.flavorName) return null;
-      name = `${builder.data.flavorName} Lemonade`;
-      price = 7;
-      details = ["Flavor", builder.data.flavorName];
-      split.nana = 7;
-    } else if (type === "Specialty") {
-      if (!builder.data.specialtyName) return null;
-      name = builder.data.specialtyName;
-      price = 8;
-      details = ["Specialty", builder.data.specialtyName];
-      split.nana = 8;
-    } else if (type === "64oz Specialty") {
-      if (!builder.data.specialty64Name) return null;
-      name = `64oz ${builder.data.specialty64Name}`;
-      price = 15;
-      details = ["64oz Specialty", builder.data.specialty64Name];
-      split.nana = 15;
-    } else if (type === "Sugar Free") {
-      if (!builder.data.sfName) return null;
-      name = builder.data.sfName;
-      price = 7;
-      details = ["Sugar Free", builder.data.sfName];
-      split.nana = 7;
-    } else if (type === "Creamy") {
-      if (!builder.data.creamyName) return null;
-      name = builder.data.creamyName;
-      price = 7;
-      details = ["Creamy", builder.data.creamyName];
-      split.nana = 7;
-    } else if (type === "Red Bull") {
-      if (!builder.data.redBullFlavor) return null;
-      name = `${builder.data.redBullFlavor} Red Bull`;
-      price = 9;
-      details = ["Red Bull", builder.data.redBullFlavor];
-      split.nana = 9;
-    } else if (type === "64oz Classic") {
-      name = "64oz Classic Lemonade";
-      price = 10;
-      details = ["64oz Classic"];
-      split.nana = 10;
+    if (type === "Bacon Dog" || type === "Quack Attack") {
+      const unit = type === "Bacon Dog" ? 5 : 6;
+      return {
+        kind: type === "Bacon Dog" ? "baconDog" : "quackAttack",
+        name: type,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: unit * qty, jessica: 0, janie: 0 },
+        lines: [`Quantity: ${qty}`, ...(d.condiments || [])],
+        selections: { condiments: d.condiments || [] }
+      };
     }
 
-    const addons = builder.data.lemonadeAddons || [];
-    addons.forEach(addon => {
-      if (addon === "Boba +$1") {
-        price += 1;
-        split.nana += 1;
-      }
-      if (addon === "Creamy +$1") {
-        price += 1;
-        split.nana += 1;
-      }
-    });
+    if (type === "Asada Fries" || type === "Cheeto Fries") {
+      const base = type === "Asada Fries" ? 10 : 13;
+      let meatUp = 0;
+      if (d.meatOption === "Extra Meat +$3") meatUp = 3;
+      if (d.meatOption === "Double Meat +$5") meatUp = 5;
+      const unit = base + meatUp;
 
-    if (addons.length) details.push(...addons);
-    return { name, price, split, details };
+      return {
+        kind: type === "Asada Fries" ? "asadaFries" : "cheetoFries",
+        name: type,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: unit * qty, jessica: 0, janie: 0 },
+        lines: [`Quantity: ${qty}`, ...(d.friesToppings || []), d.meatOption || "Regular Meat"],
+        selections: {
+          friesToppings: d.friesToppings || [],
+          meatOption: d.meatOption || "Regular Meat"
+        }
+      };
+    }
+
+    if (type === "Small Fry Tray" || type === "Big Fry Tray") {
+      const unit = type === "Small Fry Tray" ? 3 : 6;
+      return {
+        kind: type === "Small Fry Tray" ? "smallFryTray" : "bigFryTray",
+        name: type,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: unit * qty, jessica: 0, janie: 0 },
+        lines: [`Quantity: ${qty}`],
+        selections: {}
+      };
+    }
   }
 
-  if (builder.category === "pancake") {
-    const mode = builder.data.pancakeMode;
-    if (!mode) return null;
+  if (builder.category === "jessica") {
+    const type = d.pancakeType;
+    if (!type) return null;
 
-    if (mode === "Dubai Strawberries") {
+    if (type === "Stack'd") {
+      if (!d.stackedSize || !d.stackedBuild) return null;
+      const priceMap = { "20 Minis": 10, "25 Minis": 12, "30 Minis": 15 };
+      const unit = priceMap[d.stackedSize];
       return {
-        name: "Dubai Strawberries",
-        price: 12,
-        split: { mom: 12 },
-        details: ["Dubai Strawberries"]
+        kind: "stackedPancakes",
+        name: `${d.stackedSize} ${d.stackedBuild}`,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: unit * qty, janie: 0 },
+        lines: [`Quantity: ${qty}`, `Build: ${d.stackedBuild}`, ...STACKED_BUILDS[d.stackedBuild]],
+        selections: {
+          pancakeType: "Stack'd",
+          stackedSize: d.stackedSize,
+          stackedBuild: d.stackedBuild
+        }
       };
     }
 
-    if (mode === "Stack'd") {
-      const size = builder.data.stackedSize;
-      const build = builder.data.stackedBuild;
-      if (!size || !build) return null;
-
-      const priceMap = { "20": 10, "25": 12, "30": 15 };
+    if (type === "Your Way") {
+      if (!d.yourWaySize) return null;
+      const priceMap = { "20 Minis": 8, "25 Minis": 10, "30 Minis": 12 };
+      const unit = priceMap[d.yourWaySize];
       return {
-        name: `${size} Stack'd - ${build}`,
-        price: priceMap[size],
-        split: { mom: priceMap[size] },
-        details: ["Stack'd", `${size} minis`, build]
+        kind: "yourWayPancakes",
+        name: `${d.yourWaySize} Your Way`,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: unit * qty, janie: 0 },
+        lines: [
+          `Quantity: ${qty}`,
+          ...(d.yourWayToppings || []),
+          ...(d.yourWayDrizzles || []),
+          ...(d.yourWayFruits || [])
+        ],
+        selections: {
+          pancakeType: "Your Way",
+          yourWaySize: d.yourWaySize,
+          yourWayToppings: d.yourWayToppings || [],
+          yourWayDrizzles: d.yourWayDrizzles || [],
+          yourWayFruits: d.yourWayFruits || []
+        }
       };
     }
 
-    if (mode === "Your Way") {
-      const size = builder.data.yourWaySize;
-      const toppings = builder.data.yourWayToppings || [];
-      const drizzle = builder.data.yourWayDrizzle;
-      const fruit = builder.data.yourWayFruit;
-      if (!size || toppings.length === 0 || !drizzle || !fruit) return null;
-
-      const priceMap = { "20": 8, "25": 10, "30": 12 };
+    if (type === "Bite Stack") {
+      const unit = 5;
       return {
-        name: `${size} Your Way`,
-        price: priceMap[size],
-        split: { mom: priceMap[size] },
-        details: ["Your Way", `${size} minis`, ...toppings, drizzle, fruit]
-      };
-    }
-
-    if (mode === "Bite Stack") {
-      const topping = builder.data.biteTopping;
-      const drizzle = builder.data.biteDrizzle;
-      const fruit = builder.data.biteFruit;
-      if (!topping || !drizzle || !fruit) return null;
-
-      return {
+        kind: "biteStack",
         name: "Bite Stack",
-        price: 5,
-        split: { mom: 5 },
-        details: ["10 minis", topping, drizzle, fruit]
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: unit * qty, janie: 0 },
+        lines: [`Quantity: ${qty}`, ...(d.biteToppings || []), ...(d.biteDrizzles || []), ...(d.biteFruits || [])],
+        selections: {
+          pancakeType: "Bite Stack",
+          biteToppings: d.biteToppings || [],
+          biteDrizzles: d.biteDrizzles || [],
+          biteFruits: d.biteFruits || []
+        }
+      };
+    }
+  }
+
+  if (builder.category === "janie") {
+    const type = d.drinkType;
+    if (!type) return null;
+
+    if (type === "Classic Lemonade") {
+      let unit = 6;
+      const flavorLines = [];
+      if (d.classicFlavorMode === "Add Flavor +$1" && d.classicFlavor) {
+        unit += 1;
+        flavorLines.push(`Flavor: ${d.classicFlavor}`);
+      }
+      return {
+        kind: "classicLemonade",
+        name: "Classic Lemonade",
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
+        lines: [`Quantity: ${qty}`, ...flavorLines],
+        selections: {
+          drinkType: type,
+          classicFlavorMode: d.classicFlavorMode || "No Flavor",
+          classicFlavor: d.classicFlavor || null
+        }
+      };
+    }
+
+    if (type === "64oz Classic") {
+      let unit = 10;
+      const flavorLines = [];
+      if (d.classic64FlavorMode === "Add Flavor +$1" && d.classic64Flavor) {
+        unit += 1;
+        flavorLines.push(`Flavor: ${d.classic64Flavor}`);
+      }
+      return {
+        kind: "classic64",
+        name: "64oz Classic Lemonade",
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
+        lines: [`Quantity: ${qty}`, ...flavorLines],
+        selections: {
+          drinkType: type,
+          classic64FlavorMode: d.classic64FlavorMode || "No Flavor",
+          classic64Flavor: d.classic64Flavor || null
+        }
+      };
+    }
+
+    if (type === "Specialty Lemonade") {
+      if (!d.specialtyDrink) return null;
+      const unit = 8;
+      return {
+        kind: "specialtyLemonade",
+        name: d.specialtyDrink,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
+        lines: [`Quantity: ${qty}`, ...SPECIALTY_DRINKS[d.specialtyDrink]],
+        selections: {
+          drinkType: type,
+          specialtyDrink: d.specialtyDrink
+        }
+      };
+    }
+
+    if (type === "64oz Specialty") {
+      if (!d.specialty64Drink) return null;
+      const unit = 15;
+      return {
+        kind: "specialty64",
+        name: `64oz ${d.specialty64Drink}`,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
+        lines: [`Quantity: ${qty}`, ...SPECIALTY_DRINKS[d.specialty64Drink]],
+        selections: {
+          drinkType: type,
+          specialty64Drink: d.specialty64Drink
+        }
+      };
+    }
+
+    if (type === "Creamy Lemonade") {
+      if (!d.creamyDrink) return null;
+      const unit = 8;
+      return {
+        kind: "creamyLemonade",
+        name: d.creamyDrink,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
+        lines: [`Quantity: ${qty}`, ...CREAMY_DRINKS[d.creamyDrink]],
+        selections: {
+          drinkType: type,
+          creamyDrink: d.creamyDrink
+        }
+      };
+    }
+
+    if (type === "Sugar Free Lemonade") {
+      if (!d.sfDrink) return null;
+      const unit = 8;
+      return {
+        kind: "sfLemonade",
+        name: d.sfDrink,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
+        lines: [`Quantity: ${qty}`, ...SUGAR_FREE_DRINKS[d.sfDrink]],
+        selections: {
+          drinkType: type,
+          sfDrink: d.sfDrink
+        }
+      };
+    }
+
+    if (type === "Red Bull Lemonade") {
+      if (!d.redBullFlavor) return null;
+      const unit = 9;
+      return {
+        kind: "redBullLemonade",
+        name: `${d.redBullFlavor} Red Bull Lemonade`,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
+        lines: [`Quantity: ${qty}`, `Flavor: ${d.redBullFlavor}`],
+        selections: {
+          drinkType: type,
+          redBullFlavor: d.redBullFlavor
+        }
+      };
+    }
+
+    if (type === "Sago Small" || type === "Sago Large") {
+      const unit = type === "Sago Small" ? 6 : 10;
+      return {
+        kind: type === "Sago Small" ? "sagoSmall" : "sagoLarge",
+        name: type,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
+        lines: [`Quantity: ${qty}`, "Plain Sago"],
+        selections: { drinkType: type }
+      };
+    }
+  }
+
+  if (builder.category === "combo") {
+    const combo = d.comboType;
+    if (!combo) return null;
+
+    if (combo.includes("Bacon Dog")) {
+      const unit = combo.includes("Specialty") ? 12 : 10;
+      const janiePart = combo.includes("Specialty") ? 7 : 5;
+      const adrianPart = 5;
+      const lines = [`Quantity: ${qty}`, ...(d.comboDogCondiments || [])];
+
+      if (combo.includes("Specialty")) {
+        if (!d.comboSpecialtyDrink) return null;
+        lines.push(`Drink: ${d.comboSpecialtyDrink}`);
+        lines.push(...SPECIALTY_DRINKS[d.comboSpecialtyDrink]);
+      } else {
+        lines.push("Drink: Classic Lemonade");
+      }
+
+      return {
+        kind: "combo1",
+        name: combo,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: adrianPart * qty, jessica: 0, janie: janiePart * qty },
+        lines,
+        selections: {
+          comboType: combo,
+          comboDogCondiments: d.comboDogCondiments || [],
+          comboSpecialtyDrink: d.comboSpecialtyDrink || null
+        }
+      };
+    }
+
+    if (combo.includes("Bite Stack")) {
+      const unit = combo.includes("Specialty") ? 12 : 10;
+      const janiePart = combo.includes("Specialty") ? 7 : 5;
+      const jessicaPart = 5;
+      const lines = [
+        `Quantity: ${qty}`,
+        ...(d.comboBiteToppings || []),
+        ...(d.comboBiteDrizzles || []),
+        ...(d.comboBiteFruits || [])
+      ];
+
+      if (combo.includes("Specialty")) {
+        if (!d.comboSpecialtyDrink2) return null;
+        lines.push(`Drink: ${d.comboSpecialtyDrink2}`);
+        lines.push(...SPECIALTY_DRINKS[d.comboSpecialtyDrink2]);
+      } else {
+        lines.push("Drink: Classic Lemonade");
+      }
+
+      return {
+        kind: "combo2",
+        name: combo,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: 0, jessica: jessicaPart * qty, janie: janiePart * qty },
+        lines,
+        selections: {
+          comboType: combo,
+          comboBiteToppings: d.comboBiteToppings || [],
+          comboBiteDrizzles: d.comboBiteDrizzles || [],
+          comboBiteFruits: d.comboBiteFruits || [],
+          comboSpecialtyDrink2: d.comboSpecialtyDrink2 || null
+        }
       };
     }
   }
@@ -571,393 +1163,648 @@ function buildReviewObject() {
 
 function renderReview() {
   const card = document.getElementById("reviewCard");
-  if (!card) return;
+  const preview = buildPreviewItem();
 
-  const review = buildReviewObject();
-  if (!review) {
-    card.innerHTML = "<p>No item being built yet.</p>";
+  if (!preview) {
+    card.innerHTML = `<p>No item being built yet.</p>`;
     return;
   }
 
   card.innerHTML = `
-    <p><strong>${review.name}</strong></p>
-    ${review.details.map(d => `<p>${d}</p>`).join("")}
-    <p><strong>Price:</strong> ${formatMoney(review.price)}</p>
+    <p><strong>${preview.name}</strong></p>
+    ${preview.lines.map(line => `<p>${line}</p>`).join("")}
+    <p><strong>Total:</strong> ${formatMoney(preview.totalPrice)}</p>
   `;
 }
 
-function addBuiltItemToOrder() {
-  const review = buildReviewObject();
-  if (!review) {
+window.addBuiltItemToDraft = function () {
+  const preview = buildPreviewItem();
+  if (!preview) {
     alert("Finish building the item first.");
     return;
   }
 
-  state.orderItems.push(review);
-  saveState();
-  clearBuilder();
-  updateUI();
-  playTap();
-}
+  const itemToStore = {
+    ...preview,
+    builderCategory: builder.category,
+    builderData: clone(builder.data)
+  };
 
-function getOrderSplit() {
-  const split = { adrian: 0, nana: 0, mom: 0 };
-  state.orderItems.forEach(item => {
-    split.adrian += item.split.adrian || 0;
-    split.nana += item.split.nana || 0;
-    split.mom += item.split.mom || 0;
-  });
-  return split;
-}
+  if (editingDraftIndex !== null) {
+    draftItems[editingDraftIndex] = itemToStore;
+  } else {
+    draftItems.push(itemToStore);
+  }
 
-function removeOrderItem(index) {
-  state.orderItems.splice(index, 1);
-  saveState();
-  updateUI();
-}
+  editingDraftIndex = null;
+  builder = { category: null, data: {} };
+  renderBuilder();
+  renderReview();
+  renderDraft();
+};
 
-function editOrderItem(index) {
-  const item = state.orderItems[index];
+window.editDraftItem = function (index) {
+  const item = draftItems[index];
   if (!item) return;
 
-  const newPriceInput = prompt(`Edit price for "${item.name}"`, item.price);
-  if (newPriceInput === null) return;
+  builder = {
+    category: item.builderCategory,
+    data: clone(item.builderData)
+  };
+  editingDraftIndex = index;
+  renderBuilder();
+  renderReview();
+};
 
-  const newPrice = Number(newPriceInput);
-  if (Number.isNaN(newPrice) || newPrice <= 0) {
-    alert("Invalid price.");
+window.removeDraftItem = function (index) {
+  draftItems.splice(index, 1);
+  renderDraft();
+};
+
+window.clearDraft = function () {
+  if (!draftItems.length && !editingOpenOrderKey) return;
+  if (!confirm("Clear the current draft?")) return;
+
+  draftItems = [];
+  builder = { category: null, data: {} };
+  editingDraftIndex = null;
+  editingOpenOrderKey = null;
+  renderBuilder();
+  renderReview();
+  renderDraft();
+};
+
+function renderDraft() {
+  const list = document.getElementById("draftOrderList");
+  const totals = sumOwnerTotals(draftItems);
+  const total = draftItems.reduce((sum, item) => sum + item.totalPrice, 0);
+
+  document.getElementById("draftAdrian").textContent = formatMoney(totals.adrian);
+  document.getElementById("draftJessica").textContent = formatMoney(totals.jessica);
+  document.getElementById("draftJanie").textContent = formatMoney(totals.janie);
+  document.getElementById("draftTotal").textContent = formatMoney(total);
+
+  document.getElementById("editingNotice").classList.toggle("hidden", !editingOpenOrderKey);
+
+  if (!draftItems.length) {
+    list.innerHTML = `<p>No items in draft yet.</p>`;
     return;
   }
 
-  const oldSplitTotal =
-    (item.split.adrian || 0) +
-    (item.split.nana || 0) +
-    (item.split.mom || 0);
-
-  if (oldSplitTotal > 0) {
-    const ratio = newPrice / oldSplitTotal;
-    item.split = {
-      adrian: Number(((item.split.adrian || 0) * ratio).toFixed(2)),
-      nana: Number(((item.split.nana || 0) * ratio).toFixed(2)),
-      mom: Number(((item.split.mom || 0) * ratio).toFixed(2))
-    };
-  }
-
-  item.price = Number(newPrice.toFixed(2));
-  saveState();
-  updateUI();
-}
-
-function clearOrder() {
-  if (!state.orderItems.length) return;
-  if (!confirm("Clear the whole order?")) return;
-  state.orderItems = [];
-  saveState();
-  updateUI();
-}
-
-function renderOrderList() {
-  const list = document.getElementById("orderList");
-  if (!list) return;
-
-  if (!state.orderItems.length) {
-    list.innerHTML = "<p>No items in order yet.</p>";
-    return;
-  }
-
-  list.innerHTML = state.orderItems.map((item, index) => `
+  list.innerHTML = draftItems.map((item, index) => `
     <div class="order-item">
-      <div>
-        <p><strong>${item.name}</strong></p>
-        ${item.details.map(d => `<p>${d}</p>`).join("")}
-        <p>${formatMoney(item.price)}</p>
+      <div class="order-item-head">
+        <div>
+          <p><strong>${item.name}</strong></p>
+          ${item.lines.map(line => `<p>${line}</p>`).join("")}
+          <p><strong>${formatMoney(item.totalPrice)}</strong></p>
+        </div>
       </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button type="button" class="remove-btn" onclick="editOrderItem(${index})">Edit</button>
-        <button type="button" class="remove-btn" onclick="removeOrderItem(${index})">Remove</button>
+      <div class="order-actions">
+        <button type="button" class="action-btn" onclick="editDraftItem(${index})">Edit Item</button>
+        <button type="button" class="action-btn delete-btn" onclick="removeDraftItem(${index})">Remove</button>
       </div>
     </div>
   `).join("");
 }
 
-function renderPaidOrders() {
-  const todayOrders = document.getElementById("todayOrders");
-  const lastOrderCard = document.getElementById("lastOrderCard");
-  const ordersTodayCount = document.getElementById("ordersTodayCount");
-  const orderNumber = document.getElementById("orderNumber");
-
-  if (ordersTodayCount) ordersTodayCount.textContent = state.paidOrders.length;
-  if (orderNumber) orderNumber.textContent = state.nextOrderNumber;
-
-  if (!state.paidOrders.length) {
-    if (todayOrders) todayOrders.innerHTML = "<p>No paid orders yet.</p>";
-    if (lastOrderCard) lastOrderCard.innerHTML = "<p>No paid orders yet.</p>";
+window.sendDraftToOpenOrders = async function () {
+  if (!draftItems.length) {
+    alert("Add at least one item first.");
     return;
   }
 
-  const newestFirst = [...state.paidOrders].reverse();
+  const subtotal = draftItems.reduce((sum, item) => sum + item.totalPrice, 0);
+  const ownerTotals = sumOwnerTotals(draftItems);
 
-  if (todayOrders) {
-    todayOrders.innerHTML = newestFirst.map(order => `
-      <div class="paid-order">
-        <h4>Order #${order.number} • ${order.time}</h4>
-        ${order.items.map(item => `<p>${item.name} (${formatMoney(item.price)})</p>`).join("")}
-        <p><strong>Payment:</strong> ${order.payment}</p>
-        <p><strong>Total:</strong> ${formatMoney(order.total)}</p>
-      </div>
-    `).join("");
-  }
+  if (editingOpenOrderKey) {
+    const current = liveState.openOrders[editingOpenOrderKey];
+    if (!current) {
+      alert("That open order no longer exists.");
+      editingOpenOrderKey = null;
+      return;
+    }
 
-  const last = state.paidOrders[state.paidOrders.length - 1];
-  if (lastOrderCard) {
-    lastOrderCard.innerHTML = `
-      <h4>Order #${last.number} • ${last.time}</h4>
-      ${last.items.map(item => `<p>${item.name} (${formatMoney(item.price)})</p>`).join("")}
-      <p><strong>Payment:</strong> ${last.payment}</p>
-      <p><strong>Total:</strong> ${formatMoney(last.total)}</p>
-      <p><strong>Adrian:</strong> ${formatMoney(last.split.adrian)}</p>
-      <p><strong>Nana:</strong> ${formatMoney(last.split.nana)}</p>
-      <p><strong>Mom:</strong> ${formatMoney(last.split.mom)}</p>
-    `;
-  }
-}
+    const updatedOrder = {
+      ...current,
+      items: clone(draftItems),
+      subtotal,
+      ownerTotals,
+      updatedAt: Date.now()
+    };
 
-function repeatLastOrder() {
-  if (!state.paidOrders || !state.paidOrders.length) {
-    alert("No previous orders to repeat.");
+    await set(ref(db, `live/openOrders/${editingOpenOrderKey}`), updatedOrder);
+    draftItems = [];
+    builder = { category: null, data: {} };
+    editingDraftIndex = null;
+    editingOpenOrderKey = null;
+    renderBuilder();
+    renderReview();
+    renderDraft();
     return;
   }
 
-  const lastOrder = state.paidOrders[state.paidOrders.length - 1];
+  const nextNumberRef = ref(db, "live/meta/nextOrderNumber");
+  const txn = await runTransaction(nextNumberRef, current => (current || 1) + 1);
+  const orderNumber = (txn.snapshot.val() || 2) - 1;
 
-  state.orderItems = lastOrder.items.map(item => ({
-    ...item,
-    split: { ...item.split },
-    details: Array.isArray(item.details) ? [...item.details] : []
-  }));
+  const newRef = push(ref(db, "live/openOrders"));
+  const order = {
+    orderNumber,
+    createdAt: Date.now(),
+    createdLabel: nowLabel(),
+    status: "open",
+    subtotal,
+    ownerTotals,
+    items: clone(draftItems)
+  };
 
-  saveState();
-  updateUI();
-  playTap();
+  await set(newRef, order);
+
+  draftItems = [];
+  builder = { category: null, data: {} };
+  editingDraftIndex = null;
+  renderBuilder();
+  renderReview();
+  renderDraft();
+};
+
+window.loadOpenOrderForEdit = function (orderKey) {
+  const order = liveState.openOrders[orderKey];
+  if (!order) return;
+
+  draftItems = clone(order.items || []);
+  editingOpenOrderKey = orderKey;
+  editingDraftIndex = null;
+  builder = { category: null, data: {} };
+  renderBuilder();
+  renderReview();
+  renderDraft();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+window.removeOpenOrder = async function (orderKey) {
+  if (!confirm("Delete this open order?")) return;
+  await remove(ref(db, `live/openOrders/${orderKey}`));
+
+  if (editingOpenOrderKey === orderKey) {
+    editingOpenOrderKey = null;
+    draftItems = [];
+    renderDraft();
+  }
+};
+
+async function moveOpenToPaid(orderKey, payment) {
+  const order = liveState.openOrders[orderKey];
+  if (!order) return;
+
+  const paidOrder = {
+    ...order,
+    status: "paid",
+    payment,
+    paidAt: Date.now(),
+    paidLabel: nowLabel()
+  };
+
+  await set(ref(db, `live/paidOrders/${orderKey}`), paidOrder);
+  await remove(ref(db, `live/openOrders/${orderKey}`));
+
+  if (editingOpenOrderKey === orderKey) {
+    editingOpenOrderKey = null;
+    draftItems = [];
+    renderDraft();
+  }
 }
 
-function updateUI() {
-  renderOrderList();
-  renderPaidOrders();
-  renderSavedDays();
+window.payOpenOrderCash = async function (orderKey) {
+  const order = liveState.openOrders[orderKey];
+  if (!order) return;
 
-  const split = getOrderSplit();
-  const total = state.orderItems.reduce((sum, item) => sum + item.price, 0);
+  const amountGivenInput = prompt(`Order total is ${formatMoney(order.subtotal)}.\nEnter cash received:`);
+  if (amountGivenInput === null) return;
 
-  document.getElementById("adrianSplit").textContent = formatMoney(split.adrian);
-  document.getElementById("nanaSplit").textContent = formatMoney(split.nana);
-  document.getElementById("momSplit").textContent = formatMoney(split.mom);
-  document.getElementById("orderTotal").textContent = formatMoney(total);
+  const amountGiven = Number(amountGivenInput);
+  if (Number.isNaN(amountGiven)) {
+    alert("Invalid number.");
+    return;
+  }
+  if (amountGiven < order.subtotal) {
+    alert(`Not enough cash. Need at least ${formatMoney(order.subtotal)}.`);
+    return;
+  }
 
-  document.getElementById("adrianTotal").textContent = formatMoney(state.ownerTotals.adrian);
-  document.getElementById("nanaTotal").textContent = formatMoney(state.ownerTotals.nana);
-  document.getElementById("momTotal").textContent = formatMoney(state.ownerTotals.mom);
-  document.getElementById("cashTotal").textContent = formatMoney(state.cashTotal);
-  document.getElementById("digitalTotal").textContent = formatMoney(state.digitalTotal);
-  document.getElementById("dayTotal").textContent = formatMoney(state.cashTotal + state.digitalTotal);
-}
+  const changeDue = Number((amountGiven - order.subtotal).toFixed(2));
+  alert(`Change due: ${formatMoney(changeDue)}`);
 
-function savePaidOrder(paymentLabel, cash, digital, split, total) {
-  state.paidOrders.push({
-    number: state.nextOrderNumber,
-    time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-    payment: paymentLabel,
-    cash,
-    digital,
-    total,
-    split: { ...split },
-    items: state.orderItems.map(item => ({ ...item }))
+  await moveOpenToPaid(orderKey, {
+    type: "cash",
+    total: order.subtotal,
+    cashReceived: amountGiven,
+    changeDue
   });
-  state.nextOrderNumber += 1;
-}
+};
 
-function finalizeCheckout(cash, digital, paymentLabel) {
-  const total = state.orderItems.reduce((sum, item) => sum + item.price, 0);
-  if (total === 0) {
-    alert("No items in order.");
+window.payOpenOrderDigital = async function (orderKey) {
+  const order = liveState.openOrders[orderKey];
+  if (!order) return;
+
+  const method = prompt("Enter digital method exactly:\nCash App\nApple Pay\nSquare");
+  if (method === null) return;
+
+  const cleaned = method.trim();
+  if (!["Cash App", "Apple Pay", "Square"].includes(cleaned)) {
+    alert("Enter Cash App, Apple Pay, or Square exactly.");
     return;
   }
 
-  if (Math.abs((cash + digital) - total) > 0.009) {
-    alert("Payments do not match order total.");
-    return;
-  }
+  await moveOpenToPaid(orderKey, {
+    type: "digital",
+    method: cleaned,
+    total: order.subtotal
+  });
+};
 
-  const split = getOrderSplit();
+window.payOpenOrderSplit = async function (orderKey) {
+  const order = liveState.openOrders[orderKey];
+  if (!order) return;
 
-  state.ownerTotals.adrian += split.adrian;
-  state.ownerTotals.nana += split.nana;
-  state.ownerTotals.mom += split.mom;
-  state.cashTotal += cash;
-  state.digitalTotal += digital;
+  const cashInput = prompt(`Order total is ${formatMoney(order.subtotal)}.\nEnter CASH amount:`);
+  if (cashInput === null) return;
 
-  savePaidOrder(paymentLabel, cash, digital, split, total);
-
-  state.orderItems = [];
-  saveState();
-  updateUI();
-  playTap();
-}
-
-function checkoutOrder(method) {
-  const total = state.orderItems.reduce((sum, item) => sum + item.price, 0);
-  if (total === 0) {
-    alert("No items in order.");
-    return;
-  }
-
-  if (method === "cash") {
-    finalizeCheckout(total, 0, "Cash");
-  } else {
-    finalizeCheckout(0, total, "Digital");
-  }
-}
-
-function checkoutSplitHalf() {
-  const total = state.orderItems.reduce((sum, item) => sum + item.price, 0);
-  if (total === 0) {
-    alert("No items in order.");
-    return;
-  }
-
-  const cash = Number((total / 2).toFixed(2));
-  const digital = Number((total - cash).toFixed(2));
-  finalizeCheckout(cash, digital, "Split 50/50");
-}
-
-function checkoutSplitCustom() {
-  const total = state.orderItems.reduce((sum, item) => sum + item.price, 0);
-  if (total === 0) {
-    alert("No items in order.");
-    return;
-  }
-
-  const input = prompt(`Order total is ${formatMoney(total)}. Enter CASH amount:`);
-  if (input === null) return;
-
-  const cash = Number(input);
-  if (Number.isNaN(cash) || cash < 0 || cash > total) {
+  const cashAmount = Number(cashInput);
+  if (Number.isNaN(cashAmount) || cashAmount < 0 || cashAmount > order.subtotal) {
     alert("Invalid cash amount.");
     return;
   }
 
-  const digital = Number((total - cash).toFixed(2));
-  finalizeCheckout(Number(cash.toFixed(2)), digital, "Split Custom");
-}
+  const digitalAmount = Number((order.subtotal - cashAmount).toFixed(2));
+  const method = prompt(`Digital amount is ${formatMoney(digitalAmount)}.\nEnter digital method exactly:\nCash App\nApple Pay\nSquare`);
+  if (method === null) return;
 
-function saveDay() {
-  const totalToday = state.cashTotal + state.digitalTotal;
-
-  if (totalToday === 0 && state.paidOrders.length === 0) {
-    alert("Nothing to save yet.");
+  const cleaned = method.trim();
+  if (!["Cash App", "Apple Pay", "Square"].includes(cleaned)) {
+    alert("Enter Cash App, Apple Pay, or Square exactly.");
     return;
   }
 
-  state.savedDays.push({
-    date: new Date().toLocaleDateString(),
-    adrian: state.ownerTotals.adrian,
-    nana: state.ownerTotals.nana,
-    mom: state.ownerTotals.mom,
-    cash: state.cashTotal,
-    digital: state.digitalTotal,
-    total: totalToday,
-    ordersCount: state.paidOrders.length
-  });
+  let cashReceived = cashAmount;
+  let changeDue = 0;
 
-  state.orderItems = [];
-  state.ownerTotals = { adrian: 0, nana: 0, mom: 0 };
-  state.cashTotal = 0;
-  state.digitalTotal = 0;
-  state.paidOrders = [];
-  state.nextOrderNumber = 1;
+  if (cashAmount > 0) {
+    const receivedInput = prompt(`Cash portion is ${formatMoney(cashAmount)}.\nEnter cash received:`);
+    if (receivedInput === null) return;
 
-  saveState();
-  updateUI();
-
-  alert("Day saved.");
-}
-
-function resetDay() {
-  const hasAnything =
-    state.orderItems.length > 0 ||
-    state.paidOrders.length > 0 ||
-    state.cashTotal > 0 ||
-    state.digitalTotal > 0;
-
-  if (!hasAnything) {
-    alert("Nothing to reset.");
-    return;
-  }
-
-  const confirmReset = confirm("Reset today without saving?");
-  if (!confirmReset) return;
-
-  state.orderItems = [];
-  state.ownerTotals = { adrian: 0, nana: 0, mom: 0 };
-  state.cashTotal = 0;
-  state.digitalTotal = 0;
-  state.paidOrders = [];
-  state.nextOrderNumber = 1;
-
-  saveState();
-  updateUI();
-
-  alert("Day reset.");
-}
-
-function renderSavedDays() {
-  const box = document.getElementById("previousDays");
-  if (!box) return;
-
-  if (!state.savedDays || !state.savedDays.length) {
-    box.innerHTML = "<p>No saved days yet.</p>";
-    return;
-  }
-
-  box.innerHTML = [...state.savedDays].reverse().map(day => `
-    <div class="paid-order">
-      <h4>${day.date}</h4>
-      <p><strong>Adrian:</strong> ${formatMoney(day.adrian)}</p>
-      <p><strong>Nana:</strong> ${formatMoney(day.nana)}</p>
-      <p><strong>Mom:</strong> ${formatMoney(day.mom)}</p>
-      <p><strong>Cash:</strong> ${formatMoney(day.cash)}</p>
-      <p><strong>Digital:</strong> ${formatMoney(day.digital)}</p>
-      <p><strong>Total:</strong> ${formatMoney(day.total)}</p>
-      <p><strong>Orders:</strong> ${day.ordersCount}</p>
-    </div>
-  `).join("");
-}
-
-renderBuilder();
-renderReview();
-updateUI();
-const liveTestRef = ref(db, "liveTest/message");
-
-window.writeLiveTest = function () {
-  set(liveTestRef, {
-    text: "Hello from Firebase",
-    updatedAt: Date.now()
-  });
-};
-function watchLiveTest() {
-  onValue(liveTestRef, (snapshot) => {
-    const data = snapshot.val();
-    console.log("LIVE TEST:", data);
-
-    const box = document.getElementById("liveTestBox");
-    if (!box) return;
-
-    if (!data) {
-      box.textContent = "Waiting...";
+    cashReceived = Number(receivedInput);
+    if (Number.isNaN(cashReceived) || cashReceived < cashAmount) {
+      alert("Cash received must cover the cash portion.");
       return;
     }
 
-    box.textContent = data.text;
+    changeDue = Number((cashReceived - cashAmount).toFixed(2));
+    alert(`Cash change due: ${formatMoney(changeDue)}`);
+  }
+
+  await moveOpenToPaid(orderKey, {
+    type: "split",
+    total: order.subtotal,
+    cashAmount,
+    cashReceived,
+    changeDue,
+    digitalAmount,
+    digitalMethod: cleaned
+  });
+};
+
+window.markPaidAsHandedOut = async function (orderKey) {
+  const order = liveState.paidOrders[orderKey];
+  if (!order) return;
+
+  const handed = {
+    ...order,
+    status: "handed_out",
+    handedOutAt: Date.now(),
+    handedOutLabel: nowLabel()
+  };
+
+  await set(ref(db, `live/handedOutOrders/${orderKey}`), handed);
+  await remove(ref(db, `live/paidOrders/${orderKey}`));
+};
+
+window.removePaidOrder = async function (orderKey) {
+  if (!confirm("Remove this paid order?")) return;
+  await remove(ref(db, `live/paidOrders/${orderKey}`));
+};
+
+window.removeHandedOrder = async function (orderKey) {
+  if (!confirm("Remove this handed out order?")) return;
+  await remove(ref(db, `live/handedOutOrders/${orderKey}`));
+};
+
+function renderOrderCard(orderKey, order, type) {
+  const statusClass =
+    type === "open" ? "status-open" :
+    type === "paid" ? "status-paid" :
+    "status-handed";
+
+  const statusText =
+    type === "open" ? "Open" :
+    type === "paid" ? "Paid" :
+    "Handed Out";
+
+  let actions = "";
+
+  if (type === "open") {
+    actions = `
+      <div class="order-actions">
+        <button type="button" class="action-btn" onclick="loadOpenOrderForEdit('${orderKey}')">Edit Order</button>
+        <button type="button" class="action-btn delete-btn" onclick="removeOpenOrder('${orderKey}')">Remove</button>
+        <button type="button" class="action-btn pay-cash" onclick="payOpenOrderCash('${orderKey}')">Pay Cash</button>
+        <button type="button" class="action-btn pay-digital" onclick="payOpenOrderDigital('${orderKey}')">Pay Digital</button>
+        <button type="button" class="action-btn pay-split" onclick="payOpenOrderSplit('${orderKey}')">Split</button>
+      </div>
+    `;
+  }
+
+  if (type === "paid") {
+    actions = `
+      <div class="order-actions">
+        <button type="button" class="action-btn mark-handed" onclick="markPaidAsHandedOut('${orderKey}')">Handed Out</button>
+        <button type="button" class="action-btn delete-btn" onclick="removePaidOrder('${orderKey}')">Remove</button>
+      </div>
+    `;
+  }
+
+  if (type === "handed") {
+    actions = `
+      <div class="order-actions">
+        <button type="button" class="action-btn delete-btn" onclick="removeHandedOrder('${orderKey}')">Remove</button>
+      </div>
+    `;
+  }
+
+  let paymentLines = "";
+  if (order.payment) {
+    if (order.payment.type === "cash") {
+      paymentLines = `
+        <p><strong>Cash:</strong> ${formatMoney(order.payment.total)}</p>
+        <p><strong>Cash Received:</strong> ${formatMoney(order.payment.cashReceived)}</p>
+        <p><strong>Change:</strong> ${formatMoney(order.payment.changeDue)}</p>
+      `;
+    }
+    if (order.payment.type === "digital") {
+      paymentLines = `
+        <p><strong>Digital:</strong> ${order.payment.method}</p>
+        <p><strong>Total:</strong> ${formatMoney(order.payment.total)}</p>
+      `;
+    }
+    if (order.payment.type === "split") {
+      paymentLines = `
+        <p><strong>Cash:</strong> ${formatMoney(order.payment.cashAmount)}</p>
+        <p><strong>Cash Received:</strong> ${formatMoney(order.payment.cashReceived)}</p>
+        <p><strong>Cash Change:</strong> ${formatMoney(order.payment.changeDue)}</p>
+        <p><strong>Digital:</strong> ${order.payment.digitalMethod}</p>
+        <p><strong>Digital Amount:</strong> ${formatMoney(order.payment.digitalAmount)}</p>
+      `;
+    }
+  }
+
+  return `
+    <div class="order-card">
+      <span class="status-pill ${statusClass}">${statusText}</span>
+      <div class="order-card-head">
+        <div>
+          <p><strong>Order #${order.orderNumber}</strong></p>
+          <p>${type === "open" ? order.createdLabel : (order.paidLabel || order.handedOutLabel || "")}</p>
+        </div>
+        <div><strong>${formatMoney(order.subtotal)}</strong></div>
+      </div>
+
+      ${order.items.map(item => `
+        <div class="order-item">
+          <div>
+            <p><strong>${item.name}</strong></p>
+            ${item.lines.map(line => `<p>${line}</p>`).join("")}
+          </div>
+        </div>
+      `).join("")}
+
+      <div class="totals-box">
+        <div class="line"><span>Adrian</span><strong>${formatMoney(order.ownerTotals?.adrian || 0)}</strong></div>
+        <div class="line"><span>Jessica</span><strong>${formatMoney(order.ownerTotals?.jessica || 0)}</strong></div>
+        <div class="line"><span>Janie</span><strong>${formatMoney(order.ownerTotals?.janie || 0)}</strong></div>
+      </div>
+
+      ${paymentLines}
+      ${actions}
+    </div>
+  `;
+}
+
+function renderLiveColumns() {
+  const openList = document.getElementById("openOrdersList");
+  const paidList = document.getElementById("paidOrdersList");
+  const handedList = document.getElementById("handedOrdersList");
+
+  const openEntries = Object.entries(liveState.openOrders || {}).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+  const paidEntries = Object.entries(liveState.paidOrders || {}).sort((a, b) => (a[1].paidAt || 0) - (b[1].paidAt || 0));
+  const handedEntries = Object.entries(liveState.handedOutOrders || {}).sort((a, b) => (a[1].handedOutAt || 0) - (b[1].handedOutAt || 0));
+
+  openList.innerHTML = openEntries.length
+    ? openEntries.map(([key, order]) => renderOrderCard(key, order, "open")).join("")
+    : "<p>No open orders.</p>";
+
+  paidList.innerHTML = paidEntries.length
+    ? paidEntries.map(([key, order]) => renderOrderCard(key, order, "paid")).join("")
+    : "<p>No paid orders.</p>";
+
+  handedList.innerHTML = handedEntries.length
+    ? handedEntries.map(([key, order]) => renderOrderCard(key, order, "handed")).join("")
+    : "<p>No handed out orders.</p>";
+}
+
+function renderMainScreen() {
+  renderBuilder();
+  renderReview();
+  renderDraft();
+  renderLiveColumns();
+
+  const combined = totalsFromOrders(getCombinedPaidAndHanded());
+
+  document.getElementById("nextOrderNumber").textContent = liveState.meta.nextOrderNumber || 1;
+  document.getElementById("openCount").textContent = Object.keys(liveState.openOrders || {}).length;
+  document.getElementById("paidCount").textContent = Object.keys(liveState.paidOrders || {}).length;
+  document.getElementById("handedCount").textContent = Object.keys(liveState.handedOutOrders || {}).length;
+
+  document.getElementById("cashTotal").textContent = formatMoney(combined.cash);
+  document.getElementById("cashAppTotal").textContent = formatMoney(combined.cashApp);
+  document.getElementById("applePayTotal").textContent = formatMoney(combined.applePay);
+  document.getElementById("squareTotal").textContent = formatMoney(combined.square);
+
+  document.getElementById("adrianTotal").textContent = formatMoney(combined.owners.adrian);
+  document.getElementById("jessicaTotal").textContent = formatMoney(combined.owners.jessica);
+  document.getElementById("janieTotal").textContent = formatMoney(combined.owners.janie);
+  document.getElementById("dayTotal").textContent = formatMoney(combined.dayTotal);
+}
+
+function renderHistoryScreen() {
+  const daysList = document.getElementById("historyDaysList");
+  const detail = document.getElementById("historyDetail");
+  const detailTitle = document.getElementById("historyDetailTitle");
+
+  const dayEntries = Object.entries(liveState.days || {}).sort((a, b) => b[0].localeCompare(a[0]));
+
+  if (!dayEntries.length) {
+    daysList.innerHTML = "<p>No saved days yet.</p>";
+    detail.innerHTML = "<p>Select a day.</p>";
+    detailTitle.textContent = "Day Details";
+    return;
+  }
+
+  daysList.innerHTML = dayEntries.map(([dayKey, day]) => `
+    <div class="history-day-card">
+      <p><strong>${day.label || dayKey}</strong></p>
+      <p>Total: ${formatMoney(day.totals?.dayTotal || 0)}</p>
+      <p>Orders: ${[
+        ...Object.values(day.openOrders || {}),
+        ...Object.values(day.paidOrders || {}),
+        ...Object.values(day.handedOutOrders || {})
+      ].length}</p>
+      <div class="order-actions">
+        <button type="button" class="action-btn" onclick="selectHistoryDay('${dayKey}')">View Day</button>
+      </div>
+    </div>
+  `).join("");
+
+  if (!selectedHistoryDay || !liveState.days[selectedHistoryDay]) {
+    detail.innerHTML = "<p>Select a day.</p>";
+    detailTitle.textContent = "Day Details";
+    return;
+  }
+
+  const day = liveState.days[selectedHistoryDay];
+  detailTitle.textContent = `Day Details — ${day.label || selectedHistoryDay}`;
+
+  const allOrders = [
+    ...Object.entries(day.openOrders || {}).map(([k, v]) => ({ key: k, status: "Open", ...v })),
+    ...Object.entries(day.paidOrders || {}).map(([k, v]) => ({ key: k, status: "Paid", ...v })),
+    ...Object.entries(day.handedOutOrders || {}).map(([k, v]) => ({ key: k, status: "Handed Out", ...v }))
+  ].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  detail.innerHTML = `
+    <div class="totals-box">
+      <div class="line"><span>Cash</span><strong>${formatMoney(day.totals?.cash || 0)}</strong></div>
+      <div class="line"><span>Cash App</span><strong>${formatMoney(day.totals?.cashApp || 0)}</strong></div>
+      <div class="line"><span>Apple Pay</span><strong>${formatMoney(day.totals?.applePay || 0)}</strong></div>
+      <div class="line"><span>Square</span><strong>${formatMoney(day.totals?.square || 0)}</strong></div>
+      <div class="line"><span>Adrian</span><strong>${formatMoney(day.totals?.owners?.adrian || 0)}</strong></div>
+      <div class="line"><span>Jessica</span><strong>${formatMoney(day.totals?.owners?.jessica || 0)}</strong></div>
+      <div class="line"><span>Janie</span><strong>${formatMoney(day.totals?.owners?.janie || 0)}</strong></div>
+      <div class="line total-line"><span>Total</span><strong>${formatMoney(day.totals?.dayTotal || 0)}</strong></div>
+    </div>
+    ${allOrders.map(order => `
+      <div class="history-order-card">
+        <p><strong>Order #${order.orderNumber}</strong> — ${order.status}</p>
+        <p>${order.createdLabel || ""}</p>
+        ${order.items.map(item => `
+          <div class="order-item">
+            <div>
+              <p><strong>${item.name}</strong></p>
+              ${item.lines.map(line => `<p>${line}</p>`).join("")}
+              <p>${formatMoney(item.totalPrice)}</p>
+            </div>
+          </div>
+        `).join("")}
+        <p><strong>Subtotal:</strong> ${formatMoney(order.subtotal)}</p>
+        ${order.payment ? `
+          <p><strong>Payment Type:</strong> ${order.payment.type}</p>
+          ${order.payment.method ? `<p><strong>Digital Method:</strong> ${order.payment.method}</p>` : ""}
+          ${order.payment.digitalMethod ? `<p><strong>Digital Method:</strong> ${order.payment.digitalMethod}</p>` : ""}
+          ${order.payment.cashReceived !== undefined ? `<p><strong>Cash Received:</strong> ${formatMoney(order.payment.cashReceived)}</p>` : ""}
+          ${order.payment.changeDue !== undefined ? `<p><strong>Change Due:</strong> ${formatMoney(order.payment.changeDue)}</p>` : ""}
+        ` : ""}
+      </div>
+    `).join("")}
+  `;
+}
+
+window.saveDay = async function () {
+  const openCount = Object.keys(liveState.openOrders || {}).length;
+  if (openCount > 0) {
+    const proceed = confirm(`There are still ${openCount} open orders. Save day anyway and archive them too?`);
+    if (!proceed) return;
+  }
+
+  const combined = totalsFromOrders(getCombinedPaidAndHanded());
+  const payload = {
+    label: todayLabel(),
+    createdAt: Date.now(),
+    openOrders: clone(liveState.openOrders || {}),
+    paidOrders: clone(liveState.paidOrders || {}),
+    handedOutOrders: clone(liveState.handedOutOrders || {}),
+    totals: combined
+  };
+
+  await set(ref(db, `days/${todayKey()}`), payload);
+  await set(ref(db, "live/openOrders"), {});
+  await set(ref(db, "live/paidOrders"), {});
+  await set(ref(db, "live/handedOutOrders"), {});
+  await set(ref(db, "live/meta/nextOrderNumber"), 1);
+
+  draftItems = [];
+  builder = { category: null, data: {} };
+  editingDraftIndex = null;
+  editingOpenOrderKey = null;
+  renderBuilder();
+  renderReview();
+  renderDraft();
+  alert("Day saved.");
+};
+
+window.resetDay = async function () {
+  const proceed = confirm("Reset today without saving?");
+  if (!proceed) return;
+
+  await set(ref(db, "live/openOrders"), {});
+  await set(ref(db, "live/paidOrders"), {});
+  await set(ref(db, "live/handedOutOrders"), {});
+  await set(ref(db, "live/meta/nextOrderNumber"), 1);
+
+  draftItems = [];
+  builder = { category: null, data: {} };
+  editingDraftIndex = null;
+  editingOpenOrderKey = null;
+  renderBuilder();
+  renderReview();
+  renderDraft();
+  alert("Day reset.");
+};
+
+function attachLiveListeners() {
+  onValue(ref(db, "live/meta"), snap => {
+    liveState.meta = snap.val() || { nextOrderNumber: 1 };
+    renderScreen();
+  });
+
+  onValue(ref(db, "live/openOrders"), snap => {
+    liveState.openOrders = snap.val() || {};
+    renderScreen();
+  });
+
+  onValue(ref(db, "live/paidOrders"), snap => {
+    liveState.paidOrders = snap.val() || {};
+    renderScreen();
+  });
+
+  onValue(ref(db, "live/handedOutOrders"), snap => {
+    liveState.handedOutOrders = snap.val() || {};
+    renderScreen();
+  });
+
+  onValue(ref(db, "days"), snap => {
+    liveState.days = snap.val() || {};
+    renderScreen();
   });
 }
-watchLiveTest();
+
+attachLiveListeners();
+renderScreen();
