@@ -23,7 +23,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* ========= DATA ========= */
 const REGULAR_FLAVORS = [
   "Blackberry",
   "Blue Raspberry",
@@ -44,199 +43,34 @@ const REGULAR_FLAVORS = [
 ];
 
 const SPECIALTY_DRINKS = {
-  "Bahama Mama": [
-    "Watermelon",
-    "Mango",
-    "Pineapple",
-    "Watermelon Gummies",
-    "Neon Worms",
-    "Rings"
-  ],
-  "Cali Sunset": [
-    "Mango",
-    "Pineapple",
-    "Pomegranate",
-    "Rings",
-    "Neon Worms",
-    "Pineapple Gummies"
-  ],
-  "Cherry Limeade": [
-    "Cherry",
-    "Cherries",
-    "Rings",
-    "Cherry Gummies",
-    "Neon Worms"
-  ],
-  "Cherry Bomb": [
-    "Cherry",
-    "Pomegranate",
-    "Cherries",
-    "Rings",
-    "Cherry Gummies",
-    "Neon Worms"
-  ],
-  "Fun Dip": [
-    "Blue Raspberry",
-    "Green Apple",
-    "Fun Dip",
-    "Green Apple Rings",
-    "Raspberry Rim",
-    "Nerds",
-    "Rainbow Belts",
-    "Nerd Clusters"
-  ],
-  "Green Apple": [
-    "Green Apple",
-    "Caramel Drizzle",
-    "Apple Slices",
-    "Green Apple Rings",
-    "Caramel Apple Lollipop"
-  ],
-  "Lychee Berry Twist": [
-    "Lychee",
-    "Strawberry",
-    "Fresh Strawberries",
-    "Boba",
-    "Rings"
-  ],
-  "Mangonada": [
-    "Mangonada",
-    "Mango Chunks",
-    "Chamoy Rim",
-    "Chilito Powder",
-    "Mango Gummies",
-    "Tamarindo Stick"
-  ],
-  "Melon Berry": [
-    "Watermelon",
-    "Strawberry",
-    "Fresh Strawberry",
-    "Chamoy",
-    "Chilito Powder",
-    "Salsagheti",
-    "Tamarindo Stick"
-  ],
-  "Marry Me": [
-    "Peach",
-    "Strawberry",
-    "Peach Rings",
-    "Ring Pop"
-  ],
-  "Mr. Dill": [
-    "Chamoy Rim",
-    "Pickle Juice",
-    "Pickle Chunks",
-    "Chilito Powder",
-    "Tamarindo Stick"
-  ],
-  "Peachy Princess": [
-    "Strawberry",
-    "Peach",
-    "Coconut",
-    "Peach Rings",
-    "Neon Worms",
-    "Peach Gummies"
-  ],
-  "Pink Paradise": [
-    "Pineapple",
-    "Strawberry",
-    "Rings",
-    "Neon Worms",
-    "Strawberry Gummies"
-  ],
-  "Shark Attack": [
-    "Blue Raspberry",
-    "Coconut",
-    "Grenadine",
-    "Blue Raspberry Chamoy Rim",
-    "Neon Worms",
-    "Gummy Sharks",
-    "Tamarindo Stick"
-  ],
-  "Strawberry Bliss": [
-    "Strawberry",
-    "Fresh Strawberries",
-    "Rings",
-    "Neon Worms",
-    "Strawberry Gummies"
-  ],
-  "Triple Berry Blast": [
-    "Blackberry",
-    "Strawberry",
-    "Raspberry",
-    "Sour Belts",
-    "Nerd Clusters"
-  ],
-  "Watermelon Lychee Splash": [
-    "Watermelon",
-    "Lychee",
-    "Popping Boba",
-    "Watermelon Gummies",
-    "Sour Belts"
-  ]
+  "Bahama Mama": ["Watermelon", "Mango", "Pineapple", "Watermelon Gummies", "Neon Worms", "Rings"],
+  "Cali Sunset": ["Mango", "Pineapple", "Pomegranate", "Rings", "Neon Worms", "Pineapple Gummies"],
+  "Cherry Limeade": ["Cherry", "Cherries", "Rings", "Cherry Gummies", "Neon Worms"],
+  "Cherry Bomb": ["Cherry", "Pomegranate", "Cherries", "Rings", "Cherry Gummies", "Neon Worms"],
+  "Fun Dip": ["Blue Raspberry", "Green Apple", "Fun Dip", "Green Apple Rings", "Raspberry Rim", "Nerds", "Rainbow Belts", "Nerd Clusters"],
+  "Green Apple": ["Green Apple", "Caramel Drizzle", "Apple Slices", "Green Apple Rings", "Caramel Apple Lollipop"],
+  "Lychee Berry Twist": ["Lychee", "Strawberry", "Fresh Strawberries", "Boba", "Rings"],
+  "Mangonada": ["Mangonada", "Mango Chunks", "Chamoy Rim", "Chilito Powder", "Mango Gummies", "Tamarindo Stick"],
+  "Melon Berry": ["Watermelon", "Strawberry", "Fresh Strawberry", "Chamoy", "Chilito Powder", "Salsagheti", "Tamarindo Stick"],
+  "Marry Me": ["Peach", "Strawberry", "Peach Rings", "Ring Pop"],
+  "Mr. Dill": ["Chamoy Rim", "Pickle Juice", "Pickle Chunks", "Chilito Powder", "Tamarindo Stick"],
+  "Peachy Princess": ["Strawberry", "Peach", "Coconut", "Peach Rings", "Neon Worms", "Peach Gummies"],
+  "Pink Paradise": ["Pineapple", "Strawberry", "Rings", "Neon Worms", "Strawberry Gummies"],
+  "Shark Attack": ["Blue Raspberry", "Coconut", "Grenadine", "Blue Raspberry Chamoy Rim", "Neon Worms", "Gummy Sharks", "Tamarindo Stick"],
+  "Strawberry Bliss": ["Strawberry", "Fresh Strawberries", "Rings", "Neon Worms", "Strawberry Gummies"],
+  "Triple Berry Blast": ["Blackberry", "Strawberry", "Raspberry", "Sour Belts", "Nerd Clusters"],
+  "Watermelon Lychee Splash": ["Watermelon", "Lychee", "Popping Boba", "Watermelon Gummies", "Sour Belts"]
 };
 
 const CREAMY_DRINKS = {
-  "Blue Cream Dream": [
-    "Blue Raspberry",
-    "Sweet Cream",
-    "Popping Boba",
-    "Blue Raspberry Rings",
-    "Neon Worms"
-  ],
-  "Brazilian Limeade": [
-    "Limeade Base",
-    "Sweetened Condensed Milk",
-    "Gummy Rings",
-    "Neon Worms"
-  ],
-  "Cherries & Creme": [
-    "Cherry",
-    "Sweet Cream",
-    "Cherries",
-    "Cherry Gummies",
-    "Neon Worms"
-  ],
-  "Mango Dragon Splash": [
-    "Dragon Fruit",
-    "Mango",
-    "Sweet Cream",
-    "Dragon Fruit Chunks",
-    "Rings",
-    "Neon Worms",
-    "Mango Gummies"
-  ],
-  "Peaches N Cream": [
-    "Peach",
-    "Dole Peaches",
-    "Sweet Cream",
-    "Peach Rings",
-    "Peach Gummies",
-    "Neon Worms"
-  ],
-  "Piña Colada": [
-    "Pineapple",
-    "Coconut",
-    "Sweet Cream",
-    "Pineapple Chunks",
-    "Maraschino Cherries",
-    "Pineapple Rings"
-  ],
-  "Pink Dragon": [
-    "Dragon Fruit",
-    "Passion Fruit",
-    "Sweet Cream",
-    "Rings",
-    "Neon Worms"
-  ],
-  "Strawberries N Cream": [
-    "Strawberry",
-    "Condensed Milk",
-    "Fresh Strawberries",
-    "Strawberry Rings",
-    "Strawberry Gummies",
-    "Neon Worms"
-  ]
+  "Blue Cream Dream": ["Blue Raspberry", "Sweet Cream", "Popping Boba", "Blue Raspberry Rings", "Neon Worms"],
+  "Brazilian Limeade": ["Limeade Base", "Sweetened Condensed Milk", "Gummy Rings", "Neon Worms"],
+  "Cherries & Creme": ["Cherry", "Sweet Cream", "Cherries", "Cherry Gummies", "Neon Worms"],
+  "Mango Dragon Splash": ["Dragon Fruit", "Mango", "Sweet Cream", "Dragon Fruit Chunks", "Rings", "Neon Worms", "Mango Gummies"],
+  "Peaches N Cream": ["Peach", "Dole Peaches", "Sweet Cream", "Peach Rings", "Peach Gummies", "Neon Worms"],
+  "Piña Colada": ["Pineapple", "Coconut", "Sweet Cream", "Pineapple Chunks", "Maraschino Cherries", "Pineapple Rings"],
+  "Pink Dragon": ["Dragon Fruit", "Passion Fruit", "Sweet Cream", "Rings", "Neon Worms"],
+  "Strawberries N Cream": ["Strawberry", "Condensed Milk", "Fresh Strawberries", "Strawberry Rings", "Strawberry Gummies", "Neon Worms"]
 };
 
 const SUGAR_FREE_DRINKS = {
@@ -273,22 +107,13 @@ const PANCAKE_TOPPINGS = [
   "English Toffee Bits"
 ];
 
-const PANCAKE_DRIZZLES = [
-  "Cajeta",
-  "Lechera",
-  "Nutella",
-  "Syrup",
-  "Strawberry",
-  "Hershey"
-];
-
+const PANCAKE_DRIZZLES = ["Cajeta", "Lechera", "Nutella", "Syrup", "Strawberry", "Hershey"];
 const PANCAKE_FRUITS = ["Strawberries", "Bananas"];
 
 const HOTDOG_CHOICES = ["Ketchup", "Mustard", "Mayo", "Grilled Onions", "Hot Cheetos"];
 const FRIES_CHOICES = ["Sour Cream", "Salsa", "Pico de Gallo", "Duck Sauce", "Cheese"];
 const FRIES_MEAT_CHOICES = ["Regular Meat", "Extra Meat +$3", "Double Meat +$5"];
 
-/* ========= STATE ========= */
 let liveState = {
   meta: { nextOrderNumber: 1 },
   openOrders: {},
@@ -303,7 +128,6 @@ let editingDraftIndex = null;
 let editingOpenOrderKey = null;
 let selectedHistoryDay = null;
 
-/* ========= HELPERS ========= */
 function formatMoney(value) {
   return `$${Number(value || 0).toFixed(2)}`;
 }
@@ -389,6 +213,20 @@ function getCombinedPaidAndHanded() {
   };
 }
 
+function getOrderForLabel(order) {
+  const a = Number(order.ownerTotals?.adrian || 0);
+  const j = Number(order.ownerTotals?.jessica || 0);
+  const n = Number(order.ownerTotals?.janie || 0);
+
+  const count = [a > 0, j > 0, n > 0].filter(Boolean).length;
+
+  if (count > 1) return "Mixed Order";
+  if (a > 0) return "For Adrian";
+  if (j > 0) return "For Jessica";
+  if (n > 0) return "For Janie";
+  return "Order";
+}
+
 function choiceButtons(items, key, isMulti = false) {
   return `
     <div class="choice-grid">
@@ -398,7 +236,9 @@ function choiceButtons(items, key, isMulti = false) {
           : builder.data[key] === item;
 
         const safe = escapeForSingleQuote(item);
-        const cls = selected ? `choice-btn selected ${isMulti ? "multi-selected" : ""}` : "choice-btn";
+        const cls = selected
+          ? `choice-btn selected ${isMulti ? "multi-selected" : ""}`
+          : "choice-btn";
 
         const click = isMulti
           ? `toggleBuilderArray('${key}', '${safe}')`
@@ -410,7 +250,6 @@ function choiceButtons(items, key, isMulti = false) {
   `;
 }
 
-/* ========= ROUTING ========= */
 function renderScreen() {
   const params = new URLSearchParams(window.location.search);
   const view = params.get("view");
@@ -444,7 +283,6 @@ window.selectHistoryDay = function (dayKey) {
 
 window.addEventListener("popstate", renderScreen);
 
-/* ========= BUILDER CONTROL ========= */
 window.startBuilder = function (category) {
   builder = { category, data: {} };
   editingDraftIndex = null;
@@ -553,11 +391,10 @@ function renderBuilder() {
           ${choiceButtons(Object.keys(STACKED_BUILDS), "stackedBuild")}
         `;
         if (builder.data.stackedBuild) {
-          const ingredients = STACKED_BUILDS[builder.data.stackedBuild];
           html += `
             <h4>Ingredients</h4>
             <div class="review-card">
-              ${ingredients.map(i => `<p>${i}</p>`).join("")}
+              ${STACKED_BUILDS[builder.data.stackedBuild].map(i => `<p>${i}</p>`).join("")}
             </div>
           `;
         }
@@ -737,7 +574,8 @@ function renderBuilder() {
         "#1 Classic Lemonade + Bacon Dog ($10)",
         "#1 Specialty Lemonade + Bacon Dog ($12)",
         "#2 Classic Lemonade + Bite Stack Mini Pancakes ($10)",
-        "#2 Specialty Lemonade + Bite Stack Mini Pancakes ($12)"
+        "#2 Specialty Lemonade + Bite Stack Mini Pancakes ($12)",
+        "#3 Bacon Dog + Fries Combo ($8)"
       ], "comboType")}
     `;
 
@@ -750,7 +588,17 @@ function renderBuilder() {
       `;
     }
 
-    if (builder.data.quantity && comboType && comboType.includes("Bacon Dog")) {
+    if (builder.data.quantity && comboType === "#3 Bacon Dog + Fries Combo ($8)") {
+      html += `
+        <h4>3. Hotdog Condiments</h4>
+        ${choiceButtons(HOTDOG_CHOICES, "comboDogCondiments", true)}
+        <div class="review-card">
+          <p><strong>Fries:</strong> Ketchup only</p>
+        </div>
+      `;
+    }
+
+    if (builder.data.quantity && comboType && comboType.includes("Bacon Dog") && comboType !== "#3 Bacon Dog + Fries Combo ($8)") {
       html += `
         <h4>3. Hotdog Condiments</h4>
         ${choiceButtons(HOTDOG_CHOICES, "comboDogCondiments", true)}
@@ -895,12 +743,7 @@ function buildPreviewItem() {
         unitPrice: unit,
         totalPrice: unit * qty,
         ownerTotals: { adrian: 0, jessica: unit * qty, janie: 0 },
-        lines: [
-          `Quantity: ${qty}`,
-          ...(d.yourWayToppings || []),
-          ...(d.yourWayDrizzles || []),
-          ...(d.yourWayFruits || [])
-        ],
+        lines: [`Quantity: ${qty}`, ...(d.yourWayToppings || []), ...(d.yourWayDrizzles || []), ...(d.yourWayFruits || [])],
         selections: {
           pancakeType: "Your Way",
           yourWaySize: d.yourWaySize,
@@ -992,10 +835,7 @@ function buildPreviewItem() {
         totalPrice: unit * qty,
         ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
         lines: [`Quantity: ${qty}`, ...SPECIALTY_DRINKS[d.specialtyDrink]],
-        selections: {
-          drinkType: type,
-          specialtyDrink: d.specialtyDrink
-        }
+        selections: { drinkType: type, specialtyDrink: d.specialtyDrink }
       };
     }
 
@@ -1010,10 +850,7 @@ function buildPreviewItem() {
         totalPrice: unit * qty,
         ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
         lines: [`Quantity: ${qty}`, ...SPECIALTY_DRINKS[d.specialty64Drink]],
-        selections: {
-          drinkType: type,
-          specialty64Drink: d.specialty64Drink
-        }
+        selections: { drinkType: type, specialty64Drink: d.specialty64Drink }
       };
     }
 
@@ -1028,10 +865,7 @@ function buildPreviewItem() {
         totalPrice: unit * qty,
         ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
         lines: [`Quantity: ${qty}`, ...CREAMY_DRINKS[d.creamyDrink]],
-        selections: {
-          drinkType: type,
-          creamyDrink: d.creamyDrink
-        }
+        selections: { drinkType: type, creamyDrink: d.creamyDrink }
       };
     }
 
@@ -1046,10 +880,7 @@ function buildPreviewItem() {
         totalPrice: unit * qty,
         ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
         lines: [`Quantity: ${qty}`, ...SUGAR_FREE_DRINKS[d.sfDrink]],
-        selections: {
-          drinkType: type,
-          sfDrink: d.sfDrink
-        }
+        selections: { drinkType: type, sfDrink: d.sfDrink }
       };
     }
 
@@ -1064,10 +895,7 @@ function buildPreviewItem() {
         totalPrice: unit * qty,
         ownerTotals: { adrian: 0, jessica: 0, janie: unit * qty },
         lines: [`Quantity: ${qty}`, `Flavor: ${d.redBullFlavor}`],
-        selections: {
-          drinkType: type,
-          redBullFlavor: d.redBullFlavor
-        }
+        selections: { drinkType: type, redBullFlavor: d.redBullFlavor }
       };
     }
 
@@ -1089,6 +917,23 @@ function buildPreviewItem() {
   if (builder.category === "combo") {
     const combo = d.comboType;
     if (!combo) return null;
+
+    if (combo === "#3 Bacon Dog + Fries Combo ($8)") {
+      const unit = 8;
+      return {
+        kind: "combo3",
+        name: combo,
+        quantity: qty,
+        unitPrice: unit,
+        totalPrice: unit * qty,
+        ownerTotals: { adrian: unit * qty, jessica: 0, janie: 0 },
+        lines: [`Quantity: ${qty}`, "Includes: Bacon Dog", ...(d.comboDogCondiments || []), "Includes: Fries", "Fries: Ketchup only"],
+        selections: {
+          comboType: combo,
+          comboDogCondiments: d.comboDogCondiments || []
+        }
+      };
+    }
 
     if (combo.includes("Bacon Dog")) {
       const unit = combo.includes("Specialty") ? 12 : 10;
@@ -1124,12 +969,7 @@ function buildPreviewItem() {
       const unit = combo.includes("Specialty") ? 12 : 10;
       const janiePart = combo.includes("Specialty") ? 7 : 5;
       const jessicaPart = 5;
-      const lines = [
-        `Quantity: ${qty}`,
-        ...(d.comboBiteToppings || []),
-        ...(d.comboBiteDrizzles || []),
-        ...(d.comboBiteFruits || [])
-      ];
+      const lines = [`Quantity: ${qty}`, ...(d.comboBiteToppings || []), ...(d.comboBiteDrizzles || []), ...(d.comboBiteFruits || [])];
 
       if (combo.includes("Specialty")) {
         if (!d.comboSpecialtyDrink2) return null;
@@ -1511,6 +1351,8 @@ function renderOrderCard(orderKey, order, type) {
     type === "paid" ? "Paid" :
     "Handed Out";
 
+  const forLabel = getOrderForLabel(order);
+
   let actions = "";
 
   if (type === "open") {
@@ -1547,7 +1389,7 @@ function renderOrderCard(orderKey, order, type) {
     if (order.payment.type === "cash") {
       paymentLines = `
         <p><strong>Cash:</strong> ${formatMoney(order.payment.total)}</p>
-        <p><strong>Cash Received:</strong> ${formatMoney(order.payment.cashReceived)}</p>
+        <p><strong>Given:</strong> ${formatMoney(order.payment.cashReceived)}</p>
         <p><strong>Change:</strong> ${formatMoney(order.payment.changeDue)}</p>
       `;
     }
@@ -1560,17 +1402,19 @@ function renderOrderCard(orderKey, order, type) {
     if (order.payment.type === "split") {
       paymentLines = `
         <p><strong>Cash:</strong> ${formatMoney(order.payment.cashAmount)}</p>
-        <p><strong>Cash Received:</strong> ${formatMoney(order.payment.cashReceived)}</p>
-        <p><strong>Cash Change:</strong> ${formatMoney(order.payment.changeDue)}</p>
+        <p><strong>Given:</strong> ${formatMoney(order.payment.cashReceived)}</p>
+        <p><strong>Change:</strong> ${formatMoney(order.payment.changeDue)}</p>
         <p><strong>Digital:</strong> ${order.payment.digitalMethod}</p>
-        <p><strong>Digital Amount:</strong> ${formatMoney(order.payment.digitalAmount)}</p>
+        <p><strong>Digital Amt:</strong> ${formatMoney(order.payment.digitalAmount)}</p>
       `;
     }
   }
 
   return `
-    <div class="order-card">
+    <div class="order-card compact-card">
       <span class="status-pill ${statusClass}">${statusText}</span>
+      <p class="for-label"><strong>${forLabel}</strong></p>
+
       <div class="order-card-head">
         <div>
           <p><strong>Order #${order.orderNumber}</strong></p>
@@ -1580,19 +1424,13 @@ function renderOrderCard(orderKey, order, type) {
       </div>
 
       ${order.items.map(item => `
-        <div class="order-item">
+        <div class="order-item compact-item">
           <div>
             <p><strong>${item.name}</strong></p>
             ${item.lines.map(line => `<p>${line}</p>`).join("")}
           </div>
         </div>
       `).join("")}
-
-      <div class="totals-box">
-        <div class="line"><span>Adrian</span><strong>${formatMoney(order.ownerTotals?.adrian || 0)}</strong></div>
-        <div class="line"><span>Jessica</span><strong>${formatMoney(order.ownerTotals?.jessica || 0)}</strong></div>
-        <div class="line"><span>Janie</span><strong>${formatMoney(order.ownerTotals?.janie || 0)}</strong></div>
-      </div>
 
       ${paymentLines}
       ${actions}
@@ -1607,7 +1445,12 @@ function renderLiveColumns() {
 
   const openEntries = Object.entries(liveState.openOrders || {}).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
   const paidEntries = Object.entries(liveState.paidOrders || {}).sort((a, b) => (a[1].paidAt || 0) - (b[1].paidAt || 0));
-  const handedEntries = Object.entries(liveState.handedOutOrders || {}).sort((a, b) => (a[1].handedOutAt || 0) - (b[1].handedOutAt || 0));
+  const handedEntries = Object.entries(liveState.handedOutOrders || {})
+    .filter(([, order]) => {
+      const handedAt = Number(order.handedOutAt || 0);
+      return Date.now() - handedAt < 60000;
+    })
+    .sort((a, b) => (a[1].handedOutAt || 0) - (b[1].handedOutAt || 0));
 
   openList.innerHTML = openEntries.length
     ? openEntries.map(([key, order]) => renderOrderCard(key, order, "open")).join("")
