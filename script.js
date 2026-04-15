@@ -1,3 +1,78 @@
+<script type="module"> 
+
+ 
+
+  // Import the functions you need from the SDKs you need 
+
+ 
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js"; 
+
+ 
+
+  // TODO: Add SDKs for Firebase products that you want to use 
+
+ 
+
+  // https://firebase.google.com/docs/web/setup#available-libraries 
+
+ 
+
+ 
+
+  // Your web app's Firebase configuration 
+
+ 
+
+  const firebaseConfig = { 
+
+ 
+
+    apiKey: "AIzaSyDMhniulSEmiIWoXzwJy6zVSOZkHELhfLc", 
+
+ 
+
+    authDomain: "family-sales.firebaseapp.com", 
+
+ 
+
+    databaseURL: "https://family-sales-default-rtdb.firebaseio.com", 
+
+ 
+
+    projectId: "family-sales", 
+
+ 
+
+    storageBucket: "family-sales.firebasestorage.app", 
+
+ 
+
+    messagingSenderId: "590845027956", 
+
+ 
+
+    appId: "1:590845027956:web:676df074fe6150e8d39321" 
+
+ 
+
+  }; 
+
+ 
+
+ 
+
+  // Initialize Firebase 
+
+ 
+
+  const app = initializeApp(firebaseConfig); 
+
+ 
+
+</script> 
+
+
 const REGULAR_FLAVORS = [
   "Blackberry", "Blue Raspberry", "Cherry", "Coconut", "Dragon Fruit",
   "Green Apple", "Lychee", "Mango", "Passion Fruit", "Peach",
