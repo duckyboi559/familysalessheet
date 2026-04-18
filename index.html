@@ -3,26 +3,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Family Live POS</title>
+  <title>Family KDS System</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
-    <section id="mainScreen">
+    <section id="modeScreen">
       <header class="hero">
-        <h1>Family Live POS</h1>
-        <p class="subtitle">Open → Paid → Handed Out</p>
+        <h1>Family KDS System</h1>
+        <p class="subtitle">Choose a screen mode</p>
+      </header>
+
+      <section class="mode-grid">
+        <button type="button" class="mode-box" onclick="setMode('order')">
+          <h2>Order Mode</h2>
+          <p>Take full customer orders</p>
+        </button>
+
+        <button type="button" class="mode-box" onclick="setMode('pancakes')">
+          <h2>Pancake Mode</h2>
+          <p>Jessica station only</p>
+        </button>
+
+        <button type="button" class="mode-box" onclick="setMode('lemonade')">
+          <h2>Lemonade Mode</h2>
+          <p>Janie station only</p>
+        </button>
+
+        <button type="button" class="mode-box" onclick="setMode('hotdogs')">
+          <h2>Hotdog Mode</h2>
+          <p>Adrian station only</p>
+        </button>
+      </section>
+    </section>
+
+    <section id="appScreen" class="hidden">
+      <header class="hero">
+        <h1 id="screenTitle">Family KDS System</h1>
+        <p class="subtitle" id="screenSubtitle">Live sync order flow</p>
       </header>
 
       <div class="nav-row">
-        <button type="button" class="nav-btn" onclick="goHome()">Main Screen</button>
-        <button type="button" class="nav-btn" onclick="goHistory()">Saved Previous Days</button>
+        <button type="button" class="nav-btn" onclick="goModePicker()">Change Mode</button>
+        <button type="button" class="nav-btn" onclick="toggleReviewDay()">Review Day</button>
       </div>
 
-      <section class="summary-grid top-grid">
+      <section class="summary-grid">
         <div class="card">
-          <h3>Next Order #</h3>
-          <div class="big-number" id="nextOrderNumber">1</div>
+          <h3>Total Sales</h3>
+          <div class="big-number money" id="dayTotal">$0.00</div>
+        </div>
+        <div class="card">
+          <h3>Cash</h3>
+          <div class="big-number money" id="cashTotal">$0.00</div>
+        </div>
+        <div class="card">
+          <h3>Cash App</h3>
+          <div class="big-number money" id="cashAppTotal">$0.00</div>
+        </div>
+        <div class="card">
+          <h3>Apple Pay</h3>
+          <div class="big-number money" id="applePayTotal">$0.00</div>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <div class="card">
+          <h3>Square</h3>
+          <div class="big-number money" id="squareTotal">$0.00</div>
         </div>
         <div class="card">
           <h3>Open Orders</h3>
@@ -40,39 +88,23 @@
 
       <section class="summary-grid">
         <div class="card">
-          <h3>Cash</h3>
-          <div class="big-number money" id="cashTotal">$0.00</div>
+          <h3>Review Day Count</h3>
+          <div class="big-number" id="reviewCount">0</div>
         </div>
         <div class="card">
-          <h3>Cash App</h3>
-          <div class="big-number money" id="cashAppTotal">$0.00</div>
+          <h3>Mode</h3>
+          <div class="big-number small-number" id="currentModeLabel">Order</div>
         </div>
         <div class="card">
-          <h3>Apple Pay</h3>
-          <div class="big-number money" id="applePayTotal">$0.00</div>
+          <h3>Save Day</h3>
+          <input type="date" id="saveDateInput" class="date-input" />
         </div>
         <div class="card">
-          <h3>Square</h3>
-          <div class="big-number money" id="squareTotal">$0.00</div>
-        </div>
-      </section>
-
-      <section class="summary-grid">
-        <div class="card">
-          <h3>Adrian</h3>
-          <div class="big-number money" id="adrianTotal">$0.00</div>
-        </div>
-        <div class="card">
-          <h3>Jessica</h3>
-          <div class="big-number money" id="jessicaTotal">$0.00</div>
-        </div>
-        <div class="card">
-          <h3>Janie</h3>
-          <div class="big-number money" id="janieTotal">$0.00</div>
-        </div>
-        <div class="card">
-          <h3>Day Total</h3>
-          <div class="big-number money" id="dayTotal">$0.00</div>
+          <h3>Day Actions</h3>
+          <div class="inline-buttons vertical-stack">
+            <button type="button" class="primary-btn" onclick="saveDay()">Save Day</button>
+            <button type="button" class="secondary-btn" onclick="resetDay()">Reset Day</button>
+          </div>
         </div>
       </section>
 
@@ -80,19 +112,17 @@
         <div class="left-column">
           <div class="card">
             <div class="card-head">
-              <h2>Build Order</h2>
-              <span id="editingNotice" class="editing-badge hidden">Editing open order</span>
+              <h2 id="menuTitle">Menu</h2>
+              <span id="editingNotice" class="editing-badge hidden">Editing item</span>
             </div>
 
-            <div class="category-grid">
-              <button type="button" class="cat-btn adrian-btn" onclick="startBuilder('adrian')">Adrian Menu</button>
-              <button type="button" class="cat-btn jessica-btn" onclick="startBuilder('jessica')">Jessica Menu</button>
-              <button type="button" class="cat-btn janie-btn" onclick="startBuilder('janie')">Janie Drinks</button>
-              <button type="button" class="cat-btn combo-btn" onclick="startBuilder('combo')">Combos</button>
-            </div>
+            <div id="boxMenu" class="box-menu-grid"></div>
+          </div>
 
+          <div class="card">
+            <h2>Build Item</h2>
             <div id="builderStage" class="builder-stage">
-              <p>Pick a category to begin.</p>
+              <p>Tap a box to begin.</p>
             </div>
 
             <div class="builder-actions">
@@ -121,16 +151,60 @@
             </div>
 
             <div class="totals-box">
-              <div class="line"><span>Adrian</span><strong id="draftAdrian">$0.00</strong></div>
-              <div class="line"><span>Jessica</span><strong id="draftJessica">$0.00</strong></div>
-              <div class="line"><span>Janie</span><strong id="draftJanie">$0.00</strong></div>
-              <div class="line total-line"><span>Draft Total</span><strong id="draftTotal">$0.00</strong></div>
+              <div class="line total-line">
+                <span>Draft Total</span>
+                <strong id="draftTotal">$0.00</strong>
+              </div>
             </div>
 
             <div class="builder-actions">
-              <button type="button" class="primary-btn" onclick="sendDraftToOpenOrders()">Send to Open Orders</button>
+              <button type="button" class="primary-btn" onclick="sendDraftToOpenOrders()">Send Order</button>
             </div>
           </div>
+
+          <div class="card">
+            <h2>Cash Panel</h2>
+            <div class="totals-box">
+              <div class="line">
+                <span>Order Total</span>
+                <strong id="cashOrderTotal">$0.00</strong>
+              </div>
+            </div>
+
+            <div class="cash-panel">
+              <label for="cashGivenInput"><strong>Amount Given</strong></label>
+              <input type="number" id="cashGivenInput" class="cash-input" placeholder="0.00" step="0.01" />
+            </div>
+
+            <div class="totals-box">
+              <div class="line">
+                <span>Change</span>
+                <strong id="cashChangeOutput">$0.00</strong>
+              </div>
+            </div>
+
+            <div class="builder-actions">
+              <button type="button" class="primary-btn" onclick="confirmCashPayment()">Confirm Cash</button>
+            </div>
+          </div>
+
+          <div class="card hidden" id="reviewDayPanel">
+            <div class="card-head">
+              <h2>Review Day</h2>
+              <button type="button" class="secondary-btn small-btn" onclick="toggleReviewDay()">Hide</button>
+            </div>
+
+            <div id="reviewDayList" class="live-list">
+              <p>No completed items yet.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 id="stationFeedTitle">Station Feed</h2>
+        <div id="stationFeedList" class="live-list">
+          <p>No items for this station.</p>
         </div>
       </section>
 
@@ -153,43 +227,6 @@
           <h2>Handed Out</h2>
           <div id="handedOrdersList" class="live-list">
             <p>No handed out orders.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="card-head">
-          <h2>Day Actions</h2>
-          <div class="inline-buttons">
-            <button type="button" class="primary-btn small-wide-btn" onclick="saveDay()">Save Day</button>
-            <button type="button" class="secondary-btn small-wide-btn" onclick="resetDay()">Reset Day</button>
-          </div>
-        </div>
-      </section>
-    </section>
-
-    <section id="historyScreen" class="hidden">
-      <header class="hero">
-        <h1>Saved Previous Days</h1>
-        <p class="subtitle">Tap a day to see every order</p>
-      </header>
-
-      <div class="nav-row">
-        <button type="button" class="nav-btn" onclick="goHome()">Back to Main</button>
-      </div>
-
-      <section class="layout history-layout">
-        <div class="card">
-          <h2>Saved Days</h2>
-          <div id="historyDaysList" class="history-days-list">
-            <p>No saved days yet.</p>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2 id="historyDetailTitle">Day Details</h2>
-          <div id="historyDetail" class="history-detail">
-            <p>Select a day.</p>
           </div>
         </div>
       </section>
