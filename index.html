@@ -1,230 +1,428 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Family KDS System</title>
-<link rel="stylesheet" href="style.css" />
-</head>
-<body>
-<div class="app">
-<section id="modeScreen">
-<header class="hero">
-<h1>Family KDS System</h1>
-<p class="subtitle">Choose a screen mode</p>
-</header>
+* {
+box-sizing: border-box;
+}
 
-<section class="mode-grid">
-<button type="button" class="mode-box" onclick="setMode('order')">
-<h2>Order Mode</h2>
-<p>Take full customer orders</p>
-</button>
+:root {
+--pink-1: #ffd8e8;
+--pink-2: #ffc7df;
+--pink-4: #d94f8a;
+--pink-5: #8a2d53;
+--cream: #fff8fc;
+--line: #f3bfd6;
+--dark: #444;
+--red: #b42318;
+--green: #2d9b57;
+--purple: #8b5cf6;
+--shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
 
-<button type="button" class="mode-box" onclick="setMode('pancakes')">
-<h2>Pancake Mode</h2>
-<p>Jessica station only</p>
-</button>
+body {
+margin: 0;
+font-family: Arial, Helvetica, sans-serif;
+color: #222;
+background:
+linear-gradient(rgba(255, 216, 232, 0.92), rgba(255, 199, 223, 0.92)),
+url("images/logo.png") center center / 420px no-repeat fixed;
+}
 
-<button type="button" class="mode-box" onclick="setMode('lemonade')">
-<h2>Lemonade Mode</h2>
-<p>Janie station only</p>
-</button>
+.app {
+max-width: 1550px;
+margin: 0 auto;
+padding: 16px;
+}
 
-<button type="button" class="mode-box" onclick="setMode('hotdogs')">
-<h2>Hotdog Mode</h2>
-<p>Adrian station only</p>
-</button>
-</section>
-</section>
+.hidden {
+display: none !important;
+}
 
-<section id="appScreen" class="hidden">
-<header class="hero">
-<h1 id="screenTitle">Family KDS System</h1>
-<p class="subtitle" id="screenSubtitle">Live sync order flow</p>
-</header>
+/* HERO */
+.hero {
+text-align: center;
+margin-bottom: 10px;
+}
 
-<div class="top-toolbar">
-<div class="toolbar-left">
-<button type="button" class="nav-btn" onclick="goModePicker()">Change Mode</button>
-<button type="button" class="nav-btn" onclick="toggleReviewDay()">Review Day</button>
-</div>
+.hero h1 {
+margin: 0 0 4px;
+color: var(--pink-5);
+}
 
-<div class="toolbar-right">
-<label for="saveDateInput" class="toolbar-label">Save Day</label>
-<input type="date" id="saveDateInput" class="date-input" />
-<button type="button" class="primary-btn toolbar-btn" onclick="saveDay()">Save Day</button>
-<button type="button" class="secondary-btn toolbar-btn" onclick="resetDay()">Reset Day</button>
-</div>
-</div>
+.subtitle {
+margin: 0;
+color: var(--pink-5);
+}
 
-<section class="pos-layout">
-<div class="pos-left">
-<div class="card">
-<div class="card-head">
-<h2 id="menuTitle">Order Menu</h2>
-<span id="editingNotice" class="editing-badge hidden">Editing item</span>
-</div>
+/* MODE SCREEN */
+.mode-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 14px;
+}
 
-<div id="menuTabs" class="menu-tabs">
-<button type="button" class="tab-btn active" onclick="setOrderTab('pancakes')">Pancakes</button>
-<button type="button" class="tab-btn" onclick="setOrderTab('lemonade')">Lemonade</button>
-<button type="button" class="tab-btn" onclick="setOrderTab('hotdogs')">Hotdogs</button>
-</div>
+.mode-box {
+border: none;
+border-radius: 18px;
+padding: 22px;
+cursor: pointer;
+background: linear-gradient(180deg, #d94f8a, #8a2d53);
+color: white;
+text-align: center;
+box-shadow: var(--shadow);
+}
 
-<div id="boxMenu" class="box-menu-grid"></div>
-</div>
+.mode-box h2 {
+margin: 0 0 6px;
+}
 
-<div class="card">
-<h2>Build Item</h2>
-<div id="builderStage" class="builder-stage">
-<p>Tap a box to begin.</p>
-</div>
+/* TOOLBAR */
+.top-toolbar {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+gap: 12px;
+margin-bottom: 12px;
+flex-wrap: wrap;
+}
 
-<div class="builder-actions">
-<button type="button" class="secondary-btn" onclick="clearBuilder()">Clear Builder</button>
-<button type="button" class="primary-btn" onclick="addBuiltItemToDraft()">Add / Update Item</button>
-</div>
-</div>
-</div>
+.toolbar-left,
+.toolbar-right {
+display: flex;
+gap: 10px;
+align-items: center;
+flex-wrap: wrap;
+}
 
-<div class="pos-right">
-<div class="card">
-<h2>Review Item</h2>
-<div id="reviewCard" class="review-card">
-<p>No item being built yet.</p>
-</div>
-</div>
+.toolbar-label {
+font-weight: bold;
+color: var(--pink-5);
+}
 
-<div class="card">
-<div class="card-head">
-<h2>Current Draft Order</h2>
-<button type="button" class="secondary-btn small-btn" onclick="clearDraft()">Clear Draft</button>
-</div>
+.nav-btn {
+border: none;
+border-radius: 12px;
+padding: 12px 14px;
+font-weight: bold;
+cursor: pointer;
+background: var(--pink-4);
+color: white;
+}
 
-<div id="draftOrderList" class="order-list">
-<p>No items in draft yet.</p>
-</div>
+.toolbar-btn {
+min-width: 110px;
+}
 
-<div class="totals-box">
-<div class="line total-line">
-<span>Draft Total</span>
-<strong id="draftTotal">$0.00</strong>
-</div>
-</div>
+/* CARDS */
+.card {
+background: rgba(255, 255, 255, 0.96);
+border-radius: 18px;
+padding: 14px;
+box-shadow: var(--shadow);
+}
 
-<div class="builder-actions">
-<button type="button" class="primary-btn" onclick="sendDraftToOpenOrders()">Send Order</button>
-</div>
-</div>
+.card h2,
+.card h3 {
+margin-top: 0;
+color: var(--pink-5);
+}
 
-<div class="card">
-<h2>Cash Panel</h2>
+.card-head {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 8px;
+}
 
-<div class="totals-box">
-<div class="line">
-<span>Order Total</span>
-<strong id="cashOrderTotal">$0.00</strong>
-</div>
-</div>
+/* MAIN POS */
+.pos-layout {
+display: grid;
+grid-template-columns: 1.25fr 0.75fr;
+gap: 14px;
+margin-bottom: 14px;
+}
 
-<div class="cash-panel">
-<label for="cashGivenInput"><strong>Amount Given</strong></label>
-<input type="number" id="cashGivenInput" class="cash-input" placeholder="0.00" step="0.01" />
-</div>
+.pos-left,
+.pos-right {
+display: flex;
+flex-direction: column;
+gap: 14px;
+}
 
-<div class="totals-box">
-<div class="line">
-<span>Change</span>
-<strong id="cashChangeOutput">$0.00</strong>
-</div>
-</div>
+/* MENU TABS */
+.menu-tabs {
+display: flex;
+gap: 10px;
+margin-bottom: 14px;
+flex-wrap: wrap;
+}
 
-<div class="builder-actions">
-<button type="button" class="primary-btn" onclick="confirmCashPayment()">Confirm Cash</button>
-</div>
-</div>
+.tab-btn {
+border: none;
+border-radius: 12px;
+padding: 12px 16px;
+font-weight: bold;
+cursor: pointer;
+background: #fff3f8;
+color: var(--pink-5);
+}
 
-<div class="card hidden" id="reviewDayPanel">
-<div class="card-head">
-<h2>Review Day</h2>
-<button type="button" class="secondary-btn small-btn" onclick="toggleReviewDay()">Hide</button>
-</div>
+.tab-btn.active {
+background: var(--pink-4);
+color: white;
+}
 
-<div id="reviewDayList" class="live-list">
-<p>No completed items yet.</p>
-</div>
-</div>
-</div>
-</section>
+/* MENU BOXES */
+.box-menu-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 12px;
+}
 
-<section class="card">
-<h2 id="stationFeedTitle">Station Feed</h2>
-<div id="stationFeedList" class="live-list">
-<p>No items for this station.</p>
-</div>
-</section>
+.menu-box {
+position: relative;
+border: none;
+border-radius: 18px;
+min-height: 155px;
+padding: 14px;
+text-align: left;
+cursor: pointer;
+overflow: hidden;
+background-size: cover;
+background-position: center;
+color: white;
+box-shadow: var(--shadow);
+}
 
-<section class="bottom-summary-grid">
-<div class="card">
-<h3>Total Sales</h3>
-<div class="big-number money" id="dayTotal">$0.00</div>
-</div>
-<div class="card">
-<h3>Cash</h3>
-<div class="big-number money" id="cashTotal">$0.00</div>
-</div>
-<div class="card">
-<h3>Cash App</h3>
-<div class="big-number money" id="cashAppTotal">$0.00</div>
-</div>
-<div class="card">
-<h3>Apple Pay</h3>
-<div class="big-number money" id="applePayTotal">$0.00</div>
-</div>
-<div class="card">
-<h3>Square</h3>
-<div class="big-number money" id="squareTotal">$0.00</div>
-</div>
-<div class="card">
-<h3>Review Day Count</h3>
-<div class="big-number" id="reviewCount">0</div>
-</div>
-<div class="card">
-<h3>Mode</h3>
-<div class="big-number small-number" id="currentModeLabel">Order</div>
-</div>
-<div class="card">
-<h3>Weekly Total</h3>
-<div class="big-number money" id="weekTotal">$0.00</div>
-</div>
-</section>
+.menu-box::before {
+content: "";
+position: absolute;
+inset: 0;
+background: linear-gradient(rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.56));
+}
 
-<section class="columns-3">
-<div class="card column-card">
-<h2>Open Orders</h2>
-<div id="openOrdersList" class="live-list">
-<p>No open orders.</p>
-</div>
-</div>
+.menu-box-content {
+position: relative;
+z-index: 1;
+}
 
-<div class="card column-card">
-<h2>Paid Orders</h2>
-<div id="paidOrdersList" class="live-list">
-<p>No paid orders.</p>
-</div>
-</div>
+.menu-box h3 {
+margin: 0 0 6px;
+font-size: 1.1rem;
+}
 
-<div class="card column-card">
-<h2>Handed Out</h2>
-<div id="handedOrdersList" class="live-list">
-<p>No handed out orders.</p>
-</div>
-</div>
-</section>
-</section>
-</div>
+.menu-box p {
+margin: 4px 0;
+font-weight: bold;
+line-height: 1.25;
+}
 
-<script type="module" src="script.js"></script>
-</body>
-</html>
+/* BUILDER */
+.builder-stage {
+min-height: 240px;
+background:
+linear-gradient(rgba(255, 248, 252, 0.92), rgba(255, 248, 252, 0.92)),
+url("images/logo.png") center center / 180px no-repeat;
+border-radius: 14px;
+padding: 12px;
+}
+
+.builder-stage h3,
+.builder-stage h4 {
+color: var(--pink-5);
+margin: 10px 0 8px;
+}
+
+.choice-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+
+.choice-btn {
+border: none;
+border-radius: 14px;
+padding: 12px;
+cursor: pointer;
+font-weight: bold;
+background: #fff3f8;
+color: var(--pink-5);
+}
+
+.choice-btn.selected {
+background: var(--pink-4);
+color: white;
+}
+
+.choice-btn.multi-selected {
+background: var(--purple);
+color: white;
+}
+
+/* BUTTONS */
+.builder-actions,
+.inline-buttons {
+display: flex;
+gap: 10px;
+margin-top: 10px;
+flex-wrap: wrap;
+}
+
+.primary-btn {
+background: var(--pink-4);
+color: white;
+border: none;
+border-radius: 12px;
+padding: 12px;
+font-weight: bold;
+cursor: pointer;
+flex: 1;
+}
+
+.secondary-btn {
+background: var(--dark);
+color: white;
+border: none;
+border-radius: 12px;
+padding: 12px;
+font-weight: bold;
+cursor: pointer;
+flex: 1;
+}
+
+.small-btn {
+flex: 0 0 auto;
+padding: 9px 12px;
+}
+
+/* INFO AREAS */
+.live-list,
+.order-list,
+.review-card,
+.totals-box {
+background: var(--cream);
+border: 2px solid var(--line);
+border-radius: 12px;
+padding: 10px;
+}
+
+.live-list p,
+.order-list p,
+.review-card p {
+margin: 4px 0;
+}
+
+.line {
+display: flex;
+justify-content: space-between;
+margin: 6px 0;
+}
+
+.total-line {
+border-top: 1px solid var(--line);
+padding-top: 6px;
+font-weight: bold;
+}
+
+/* CASH PANEL */
+.cash-panel {
+margin-top: 10px;
+}
+
+.cash-input {
+width: 100%;
+padding: 12px;
+border-radius: 12px;
+border: 2px solid var(--line);
+font-size: 1rem;
+}
+
+/* BADGE */
+.editing-badge {
+background: #ffe7a8;
+color: #7a5300;
+padding: 6px 10px;
+border-radius: 999px;
+font-size: 0.85rem;
+}
+
+/* DATE */
+.date-input {
+padding: 10px 12px;
+border-radius: 10px;
+border: 2px solid var(--line);
+font-size: 1rem;
+background: white;
+}
+
+/* BOTTOM SUMMARY */
+.bottom-summary-grid {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 12px;
+margin-bottom: 14px;
+}
+
+.big-number {
+font-size: 1.8rem;
+font-weight: 900;
+text-align: center;
+margin-top: 8px;
+}
+
+.small-number {
+font-size: 1rem;
+}
+
+.money {
+font-size: 1.4rem;
+}
+
+/* ORDER COLUMNS */
+.columns-3 {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 12px;
+}
+
+.column-card {
+min-height: 260px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+.pos-layout {
+grid-template-columns: 1fr;
+}
+
+.box-menu-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+
+.bottom-summary-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+
+.columns-3 {
+grid-template-columns: 1fr;
+}
+}
+
+@media (max-width: 700px) {
+.mode-grid,
+.box-menu-grid,
+.choice-grid,
+.bottom-summary-grid {
+grid-template-columns: 1fr;
+}
+
+body {
+background:
+linear-gradient(rgba(255, 216, 232, 0.94), rgba(255, 199, 223, 0.94)),
+url("images/logo.png") center top 120px / 240px no-repeat fixed;
+}
+
+.builder-stage {
+background:
+linear-gradient(rgba(255, 248, 252, 0.95), rgba(255, 248, 252, 0.95)),
+url("images/logo.png") center center / 130px no-repeat;
+}
+}
 
