@@ -6,7 +6,8 @@ import {
   set,
   remove,
   onValue,
-  runTransaction
+  runTransaction,
+  get,
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
 const firebaseConfig = {
