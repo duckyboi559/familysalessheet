@@ -4,9 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily Sales Tracker</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -69,17 +71,17 @@
         </div>
 
         <div class="payment-buttons">
-          <button class="pay-btn active" data-method="cash" onclick="setPaymentMethod('cash')">
+          <button id="payCashBtn" class="pay-btn active" type="button">
             <span class="pay-emoji">💵</span>
             <span>Cash</span>
           </button>
 
-          <button class="pay-btn" data-method="digital" onclick="setPaymentMethod('digital')">
+          <button id="payDigitalBtn" class="pay-btn" type="button">
             <span class="pay-emoji">📱</span>
             <span>Digital</span>
           </button>
 
-          <button class="pay-btn" data-method="split" onclick="setPaymentMethod('split')">
+          <button id="paySplitBtn" class="pay-btn" type="button">
             <span class="pay-emoji">↪</span>
             <span>Split</span>
           </button>
@@ -142,7 +144,7 @@
       </div>
     </section>
 
-    <button class="save-day-btn" onclick="saveDay()">
+    <button id="saveDayBtn" class="save-day-btn" type="button">
       <span class="save-icon">💾</span>
       <span>Save Day</span>
     </button>
@@ -154,15 +156,13 @@
           <h3>Previous Days</h3>
         </div>
 
-        <button class="refresh-btn" onclick="loadHistory()">⟳ Refresh</button>
+        <button id="refreshHistoryBtn" class="refresh-btn" type="button">⟳ Refresh</button>
       </div>
 
       <div class="history-list" id="historyList"></div>
     </section>
   </main>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
