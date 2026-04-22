@@ -3,9 +3,6 @@ import {
   getDatabase,
   ref,
   set,
-  push,
-  remove,
-  get,
   onValue
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
@@ -22,53 +19,134 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const HOTDOG_TOPPINGS = [
-  "Mayo",
-  "Mustard",
-  "Ketchup",
-  "Grilled Onions",
-  "Pico de Gallo",
-  "Hot Cheetos"
+const BUILT_FLAVORS = [
+  "Classic #1",
+  "Classic #2",
+  "Churro Overload",
+  "Oreo Banana Dulce",
+  "Dubai Chocolate",
+  "Oreo Overload",
+  "Tres Leches",
+  "S'mores"
 ];
 
-const FRY_TOPPINGS = [
-  "Cheese",
-  "Pico de Gallo",
-  "Sour Cream",
-  "Salsa Verde"
+const BUILT_SIZES = [
+  { name: "20 Minis", price: 10 },
+  { name: "25 Minis", price: 12 },
+  { name: "30 Minis", price: 15 }
 ];
 
-const ITEM_DEFS = {
-  hotdog: { name: "Hotdog", price: 5, type: "hotdog" },
-  combo: { name: "Ducky Combo", price: 8, type: "combo" },
-  fries: { name: "Tray of Fries", price: 6, type: "plainFries" },
-  asadaSmall: { name: "Asada Fries Small", price: 7, type: "asada" },
-  asadaTray: { name: "Asada Fries Tray", price: 10, type: "asada" },
-  cheetoFries: { name: "Cheeto Fries", price: 13, type: "cheetoAsada" }
-};
+const YOUR_WAY_SIZES = [
+  { name: "20 Minis", price: 8 },
+  { name: "25 Minis", price: 10 },
+  { name: "30 Minis", price: 12 }
+];
 
-const SCREENS = ["home", "build", "open", "handed", "stats"];
+const CLASSIC_FLAVORS = [
+  "Blackberry",
+  "Blue Raspberry",
+  "Cherry",
+  "Coconut",
+  "Dragon Fruit",
+  "Green Apple",
+  "Lychee",
+  "Mango",
+  "Passionfruit",
+  "Peach",
+  "Pineapple",
+  "Pomegranate",
+  "Raspberry",
+  "Strawberry",
+  "Vanilla",
+  "Watermelon"
+];
+
+const SPECIALTY_DRINKS = [
+  "Bahama Mama",
+  "Cali Sunset",
+  "Cherry Limeade",
+  "Cherry Bomb",
+  "Fun Dip",
+  "Green Apple",
+  "Lychee Berry Twist",
+  "Mangonada",
+  "Melon Berry",
+  "Marry Me",
+  "Mr. Dill",
+  "Peachy Princess",
+  "Pink Paradise",
+  "Shark Attack",
+  "Strawberry Bliss",
+  "Triple Berry Blast",
+  "Watermelon Lychee Splash"
+];
+
+const CREAMY_DRINKS = [
+  "Blue Cream Dream",
+  "Brazilian Limeade",
+  "Cherries & Creme",
+  "Mango Dragon Splash",
+  "Peaches N Cream",
+  "Piña Colada",
+  "Pink Dragon",
+  "Strawberries N Cream"
+];
+
+const SUGAR_FREE_DRINKS = [
+  "Island Splash",
+  "Peachy Princess",
+  "Sweet Peach Bliss",
+  "Sunset Splash",
+  "Tigers Blood",
+  "Watermelon Sugar"
+];
+
+const REDBULL_CHOICES = [
+  ...CLASSIC_FLAVORS.map(name => ({ name, category: "Classic Flavor" })),
+  ...SPECIALTY_DRINKS.map(name => ({ name, category: "Specialty" })),
+  ...CREAMY_DRINKS.map(name => ({ name, category: "Creamy" })),
+  ...SUGAR_FREE_DRINKS.map(name => ({ name, category: "Sugar Free" }))
+];
+
+const jessicaMenuButtons = [
+  { id: "built", name: "Built Pancakes", emoji: "🥞" },
+  { id: "your_way", name: "Stack It Your Way", emoji: "💗" },
+  { id: "bite_stack", name: "Bite Stack", emoji: "🧁" },
+  { id: "dubai_strawberries", name: "Dubai Strawberries", emoji: "🍓" }
+];
+
+const janieMenuButtons = [
+  { id: "classic", name: "Classic Lemonade", emoji: "🍋" },
+  { id: "specialty", name: "Specialty Lemonade", emoji: "⭐" },
+  { id: "creamy", name: "Creamy Lemonade", emoji: "🍦" },
+  { id: "sugarfree", name: "Sugar Free Lemonade", emoji: "🩷" },
+  { id: "redbull", name: "Red Bull Drinks", emoji: "⚡" },
+  { id: "64classic", name: "64 oz Classic", emoji: "🧃" },
+  { id: "64specialty", name: "64 oz Specialty", emoji: "🥤" }
+];
 
 const state = {
-  currentDate: "",
-  allDays: {},
-  openOrders: {},
-  completedOrders: {},
-  editingOrderId: null,
-  draft: {
-    customer: "",
-    payment: "cash",
-    items: []
-  }
+  date: "",
+  jessicaTotal: 0,
+  janieTotal: 0,
+  cashTotal: 0,
+  digitalTotal: 0,
+  tips: 0,
+  entries: []
 };
 
-let openTimerInterval = null;
-let handedTimerInterval = null;
-let currentItemBuild = null;
+const popupState = {
+  owner: "",
+  payment: "cash",
+  selectedLabel: "",
+  selectedAmount: 0
+};
 
-// ---------- helpers ----------
-function money(v) {
-  return `$${Number(v || 0).toFixed(2)}`;
+let historyCache = {};
+let historyBound = false;
+
+function money(value) {
+  return `$${Number(value || 0).toFixed(2)}`;
 }
 
 function todayLocalValue() {
@@ -84,717 +162,614 @@ function formatDateForDisplay(dateString) {
   return `${month}/${day}/${year}`;
 }
 
-function formatSeconds(seconds) {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${String(secs).padStart(2, "0")}`;
-}
-
-function getDraftTotal() {
-  return state.draft.items.reduce((sum, item) => sum + Number(item.lineTotal || 0), 0);
-}
-
-function getCurrentDayNode() {
-  return state.allDays[state.currentDate] || { openOrders: {}, completedOrders: {} };
-}
-
-function getOpenOrdersArray() {
-  return Object.entries(getCurrentDayNode().openOrders || {}).map(([id, order]) => ({ id, ...order }));
-}
-
-function getCompletedOrdersArray() {
-  return Object.entries(getCurrentDayNode().completedOrders || {}).map(([id, order]) => ({ id, ...order }));
-}
-
-function startOfWeek(dateString) {
-  const d = new Date(`${dateString}T12:00:00`);
-  const day = d.getDay();
-  d.setDate(d.getDate() - day);
-  return d;
-}
-
-function sameWeek(dateStringA, dateStringB) {
-  const a = startOfWeek(dateStringA);
-  const b = startOfWeek(dateStringB);
-  return a.toDateString() === b.toDateString();
-}
-
-function buildItemCounts(orders) {
-  const counts = {};
-  orders.forEach(order => {
-    (order.items || []).forEach(item => {
-      counts[item.name] = (counts[item.name] || 0) + 1;
-    });
-  });
-  return counts;
-}
-
-function topItemFromCounts(counts) {
-  const entries = Object.entries(counts);
-  if (!entries.length) return "—";
-  entries.sort((a, b) => b[1] - a[1]);
-  return `${entries[0][0]} (${entries[0][1]})`;
-}
-
-function avgTimeFromOrders(orders) {
-  const finished = orders.filter(o => typeof o.serviceSeconds === "number");
-  if (!finished.length) return "0:00";
-  const total = finished.reduce((sum, o) => sum + o.serviceSeconds, 0);
-  return formatSeconds(Math.round(total / finished.length));
-}
-
-function setActiveScreen(name) {
-  SCREENS.forEach(screen => {
-    document.getElementById(`screen-${screen}`).classList.toggle("active", screen === name);
-  });
-  if (name === "open") renderOpenOrders();
-  if (name === "handed") renderHandedOut();
-  if (name === "stats") renderStatsAndHistory();
-}
-
-async function ensureDayNode(date) {
-  const dayRef = ref(db, `duckysTracker/days/${date}`);
-  const snap = await get(dayRef);
-  if (!snap.exists()) {
-    await set(dayRef, {
-      date,
-      openOrders: {},
-      completedOrders: {},
-      orderCounter: 0
-    });
+function setDefaultDate() {
+  const datePicker = document.getElementById("datePicker");
+  if (!datePicker.value) {
+    datePicker.value = todayLocalValue();
   }
+  state.date = datePicker.value;
 }
 
-async function nextOrderNumber(date) {
-  const dayNode = state.allDays[date] || {};
-  const current = Number(dayNode.orderCounter || 0) + 1;
-  await set(ref(db, `duckysTracker/days/${date}/orderCounter`), current);
-  return current;
-}
+function renderMenus() {
+  const jessicaMenuList = document.getElementById("jessicaMenuList");
+  const janieMenuList = document.getElementById("janieMenuList");
 
-// ---------- rendering ----------
-function renderDraft() {
-  document.getElementById("orderCustomer").value = state.draft.customer;
-  document.querySelectorAll(".pay-pill").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.payment === state.draft.payment);
+  jessicaMenuList.innerHTML = "";
+  janieMenuList.innerHTML = "";
+
+  jessicaMenuButtons.forEach(item => {
+    jessicaMenuList.appendChild(buildMenuRow(item, "jessica"));
   });
 
-  const wrap = document.getElementById("draftItems");
-  if (!state.draft.items.length) {
-    wrap.className = "draft-items empty-state";
-    wrap.textContent = "Add items to start the order.";
-  } else {
-    wrap.className = "draft-items";
-    wrap.innerHTML = "";
-    state.draft.items.forEach((item, index) => {
-      const box = document.createElement("div");
-      box.className = "draft-item";
-      box.innerHTML = `
-        <div class="draft-item-top">
-          <span>${item.name}</span>
-          <span>${money(item.lineTotal)}</span>
-        </div>
-        ${item.selected?.length ? `<div class="draft-item-sub">Toppings: ${item.selected.join(", ")}</div>` : ""}
-        ${item.addons?.length ? `<div class="draft-item-sub">Add-ons: ${item.addons.join(", ")}</div>` : ""}
-        ${item.note ? `<div class="draft-item-sub">Note: ${item.note}</div>` : ""}
-        <div class="draft-item-actions">
-          <button class="small-btn" data-edit-index="${index}" type="button">Edit</button>
-          <button class="small-btn danger-btn" data-remove-index="${index}" type="button">Remove</button>
-        </div>
-      `;
-      wrap.appendChild(box);
-    });
-
-    wrap.querySelectorAll("[data-remove-index]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        state.draft.items.splice(Number(btn.dataset.removeIndex), 1);
-        renderDraft();
-      });
-    });
-
-    wrap.querySelectorAll("[data-edit-index]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        openItemBuilderFromExisting(Number(btn.dataset.editIndex));
-      });
-    });
-  }
-
-  document.getElementById("draftTotal").textContent = money(getDraftTotal());
+  janieMenuButtons.forEach(item => {
+    janieMenuList.appendChild(buildMenuRow(item, "janie"));
+  });
 }
 
-function renderOpenOrders() {
-  const wrap = document.getElementById("openOrdersList");
-  const orders = getOpenOrdersArray().sort((a, b) => a.startedAt - b.startedAt);
+function buildMenuRow(item, owner) {
+  const row = document.createElement("div");
+  row.className = "menu-row";
 
-  wrap.innerHTML = "";
-  if (!orders.length) {
-    wrap.innerHTML = `<div class="glass-card notice-card">No open orders right now.</div>`;
+  row.innerHTML = `
+    <div class="menu-left">
+      <div class="menu-icon">${item.emoji}</div>
+      <div class="menu-name">${item.name}</div>
+    </div>
+    <button class="menu-open-btn" type="button">Open</button>
+  `;
+
+  row.querySelector(".menu-open-btn").addEventListener("click", () => {
+    handleMenuOpen(owner, item.id);
+  });
+
+  return row;
+}
+
+function handleMenuOpen(owner, id) {
+  if (owner === "jessica") {
+    if (id === "built") openJessicaBuilt();
+    if (id === "your_way") openJessicaYourWay();
+    if (id === "bite_stack") openSimpleSale("jessica", "Bite Stack", 5, "10 minis");
+    if (id === "dubai_strawberries") openSimpleSale("jessica", "Dubai Strawberries", 12, "");
     return;
   }
 
-  orders.forEach(order => {
-    const box = document.createElement("div");
-    box.className = "order-card";
-    box.innerHTML = `
-      <div class="order-card-head">
-        <div>
-          <div><strong>Order #${order.orderNumber}</strong></div>
-          <div>${order.customer || "No customer name"}</div>
-        </div>
-        <div class="order-timer" data-started="${order.startedAt}">0:00</div>
-      </div>
-
-      <div class="order-meta">
-        <div>Payment: <strong>${order.payment}</strong></div>
-        <div>Total: <strong>${money(order.total)}</strong></div>
-      </div>
-
-      <div class="order-items">${renderItemsHtml(order.items)}</div>
-
-      <div class="order-actions">
-        <button class="order-action edit-btn" data-edit-order="${order.id}" type="button">Edit</button>
-        <button class="order-action done-btn" data-done-order="${order.id}" type="button">Handed Out</button>
-        <button class="order-action remove-btn" data-remove-order="${order.id}" type="button">Remove</button>
-      </div>
-    `;
-    wrap.appendChild(box);
-  });
-
-  wrap.querySelectorAll("[data-edit-order]").forEach(btn => {
-    btn.addEventListener("click", () => editOpenOrder(btn.dataset.editOrder));
-  });
-
-  wrap.querySelectorAll("[data-done-order]").forEach(btn => {
-    btn.addEventListener("click", () => markOrderHandedOut(btn.dataset.doneOrder));
-  });
-
-  wrap.querySelectorAll("[data-remove-order]").forEach(btn => {
-    btn.addEventListener("click", () => removeOpenOrder(btn.dataset.removeOrder));
-  });
-
-  refreshOpenOrderTimers();
+  if (id === "classic") openClassicLemonade();
+  if (id === "specialty") openJanieList("janie", "Specialty Lemonade", SPECIALTY_DRINKS, 8);
+  if (id === "creamy") openJanieList("janie", "Creamy Lemonade", CREAMY_DRINKS, 8);
+  if (id === "sugarfree") openJanieList("janie", "Sugar Free Lemonade", SUGAR_FREE_DRINKS, 8);
+  if (id === "redbull") openRedBull();
+  if (id === "64classic") open64Classic();
+  if (id === "64specialty") open64Specialty();
 }
 
-function renderHandedOut() {
-  const wrap = document.getElementById("handedOutList");
-  const now = Date.now();
-  const orders = getCompletedOrdersArray()
-    .filter(order => now - (order.completedAt || 0) < 60000)
-    .sort((a, b) => b.completedAt - a.completedAt);
+function openPopup(title, stepTitle = "") {
+  document.getElementById("popupTitle").textContent = title;
+  document.getElementById("popupStepTitle").textContent = stepTitle;
+  document.getElementById("popupOptions").innerHTML = "";
+  document.getElementById("popupOverlay").classList.remove("hidden");
 
+  popupState.payment = "cash";
+  popupState.selectedLabel = "";
+  popupState.selectedAmount = 0;
+
+  setPopupPayment("cash");
+  updatePopupSummary();
+}
+
+function closePopup() {
+  document.getElementById("popupOverlay").classList.add("hidden");
+}
+
+function renderPopupOptions(options, onChoose) {
+  const wrap = document.getElementById("popupOptions");
   wrap.innerHTML = "";
-  if (!orders.length) {
-    wrap.innerHTML = `<div class="glass-card notice-card">No recently handed out orders.</div>`;
+
+  options.forEach((option, index) => {
+    const btn = document.createElement("button");
+    btn.className = "popup-option";
+    btn.type = "button";
+    btn.innerHTML = `
+      <div class="popup-option-title">${option.name}</div>
+      ${option.sub ? `<div class="popup-option-sub">${option.sub}</div>` : ""}
+    `;
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".popup-option").forEach(el => el.classList.remove("active"));
+      btn.classList.add("active");
+      onChoose(option, index);
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+function setPopupPayment(method) {
+  popupState.payment = method;
+  document.getElementById("popupCashBtn").classList.toggle("active", method === "cash");
+  document.getElementById("popupDigitalBtn").classList.toggle("active", method === "digital");
+}
+
+function updatePopupSummary() {
+  const box = document.getElementById("popupSummary");
+
+  if (!popupState.selectedLabel) {
+    box.textContent = "Nothing selected yet.";
     return;
   }
 
-  orders.forEach(order => {
-    const box = document.createElement("div");
-    box.className = "order-card";
-    box.innerHTML = `
-      <div class="order-card-head">
-        <div>
-          <div><strong>Order #${order.orderNumber}</strong></div>
-          <div>${order.customer || "No customer name"}</div>
-        </div>
-        <div class="order-timer">${formatSeconds(order.serviceSeconds || 0)}</div>
-      </div>
-      <div class="order-meta">
-        <div>Finished: <strong>${money(order.total)}</strong></div>
-        <div>Payment: <strong>${order.payment}</strong></div>
-      </div>
-      <div class="order-items">${renderItemsHtml(order.items)}</div>
-    `;
-    wrap.appendChild(box);
-  });
+  box.textContent = `${popupState.selectedLabel} • ${money(popupState.selectedAmount)} • ${popupState.payment}`;
 }
 
-function renderItemsHtml(items = []) {
-  let html = "<ul>";
-  items.forEach(item => {
-    html += `<li><strong>${item.name}</strong> — ${money(item.lineTotal)}`;
-    if (item.selected?.length) html += `<br><small>Toppings: ${item.selected.join(", ")}</small>`;
-    if (item.addons?.length) html += `<br><small>Add-ons: ${item.addons.join(", ")}</small>`;
-    if (item.note) html += `<br><small>Note: ${item.note}</small>`;
-    html += `</li>`;
-  });
-  html += "</ul>";
-  return html;
+function openSimpleSale(owner, name, amount, sub = "") {
+  popupState.owner = owner;
+  openPopup(name, "Choose payment, then tap Done.");
+
+  popupState.selectedLabel = name;
+  popupState.selectedAmount = amount;
+  updatePopupSummary();
+
+  document.getElementById("popupOptions").innerHTML = `
+    <button class="popup-option active" type="button">
+      <div class="popup-option-title">${name} • ${money(amount)}</div>
+      ${sub ? `<div class="popup-option-sub">${sub}</div>` : ""}
+    </button>
+  `;
 }
 
-function renderHomeSummary() {
-  const completed = getCompletedOrdersArray();
-  document.getElementById("homeOpenCount").textContent = String(getOpenOrdersArray().length);
-  document.getElementById("homeCompletedCount").textContent = String(completed.length);
-  document.getElementById("homeTodaySales").textContent = money(completed.reduce((s, o) => s + Number(o.total || 0), 0));
-  document.getElementById("homeAvgTime").textContent = avgTimeFromOrders(completed);
-}
+function openJessicaBuilt() {
+  popupState.owner = "jessica";
+  openPopup("Built Pancakes", "Choose a size first.");
 
-function renderStatsAndHistory() {
-  const currentDayOrders = getCompletedOrdersArray().sort((a, b) => b.completedAt - a.completedAt);
-  const allDays = Object.values(state.allDays || {});
-  const weeklyDays = allDays.filter(day => day.date && sameWeek(day.date, state.currentDate));
+  renderPopupOptions(
+    BUILT_SIZES.map(item => ({
+      name: `${item.name} • ${money(item.price)}`,
+      sub: "Built pancake size"
+    })),
+    (_, sizeIndex) => {
+      const pickedSize = BUILT_SIZES[sizeIndex];
 
-  const weeklyOrders = weeklyDays.flatMap(day =>
-    Object.values(day.completedOrders || {})
+      document.getElementById("popupStepTitle").textContent = "Now choose the built flavor.";
+
+      renderPopupOptions(
+        BUILT_FLAVORS.map(flavor => ({
+          name: flavor,
+          sub: `${pickedSize.name} • ${money(pickedSize.price)}`
+        })),
+        (choice) => {
+          popupState.selectedLabel = `Built Pancakes - ${pickedSize.name} - ${choice.name}`;
+          popupState.selectedAmount = pickedSize.price;
+          updatePopupSummary();
+        }
+      );
+    }
   );
-
-  const dailyCounts = buildItemCounts(currentDayOrders);
-  const weeklyCounts = buildItemCounts(weeklyOrders);
-
-  document.getElementById("dailySales").textContent = money(currentDayOrders.reduce((s, o) => s + Number(o.total || 0), 0));
-  document.getElementById("dailyOrders").textContent = String(currentDayOrders.length);
-  document.getElementById("dailyAvgTime").textContent = avgTimeFromOrders(currentDayOrders);
-  document.getElementById("dailyTopItem").textContent = topItemFromCounts(dailyCounts);
-
-  document.getElementById("weeklySales").textContent = money(weeklyOrders.reduce((s, o) => s + Number(o.total || 0), 0));
-  document.getElementById("weeklyOrders").textContent = String(weeklyOrders.length);
-  document.getElementById("weeklyAvgTime").textContent = avgTimeFromOrders(weeklyOrders);
-  document.getElementById("weeklyTopItem").textContent = topItemFromCounts(weeklyCounts);
-
-  renderCountsList("dailyItemCounts", dailyCounts);
-  renderCountsList("weeklyItemCounts", weeklyCounts);
-  renderDaysList();
 }
 
-function renderCountsList(id, counts) {
-  const wrap = document.getElementById(id);
-  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  if (!entries.length) {
-    wrap.innerHTML = `<div class="stats-list-row"><span>No data yet.</span><strong>0</strong></div>`;
+function openJessicaYourWay() {
+  popupState.owner = "jessica";
+  openPopup("Stack It Your Way", "Choose a size.");
+
+  renderPopupOptions(
+    YOUR_WAY_SIZES.map(item => ({
+      name: `${item.name} • ${money(item.price)}`,
+      sub: "2 toppings, 1 drizzle, 1 fruit + whip"
+    })),
+    (_, index) => {
+      const item = YOUR_WAY_SIZES[index];
+      popupState.selectedLabel = `Stack It Your Way - ${item.name}`;
+      popupState.selectedAmount = item.price;
+      updatePopupSummary();
+    }
+  );
+}
+
+function openClassicLemonade() {
+  popupState.owner = "janie";
+  openPopup("Classic Lemonade", "Choose plain or flavored.");
+
+  renderPopupOptions(
+    [
+      { name: "No Flavor • $6", sub: "Regular classic lemonade" },
+      { name: "Flavored • $7", sub: "One regular flavor" }
+    ],
+    (_, index) => {
+      if (index === 0) {
+        popupState.selectedLabel = "Classic Lemonade - No Flavor";
+        popupState.selectedAmount = 6;
+        updatePopupSummary();
+        return;
+      }
+
+      document.getElementById("popupStepTitle").textContent = "Choose one classic flavor.";
+
+      renderPopupOptions(
+        CLASSIC_FLAVORS.map(flavor => ({
+          name: `${flavor} • $7`,
+          sub: "Classic flavored lemonade"
+        })),
+        (choice) => {
+          const flavorName = choice.name.replace(" • $7", "");
+          popupState.selectedLabel = `Classic Lemonade - ${flavorName}`;
+          popupState.selectedAmount = 7;
+          updatePopupSummary();
+        }
+      );
+    }
+  );
+}
+
+function openJanieList(owner, title, items, price) {
+  popupState.owner = owner;
+  openPopup(title, "Choose a drink.");
+
+  renderPopupOptions(
+    items.map(name => ({
+      name: `${name} • ${money(price)}`
+    })),
+    (choice) => {
+      const label = choice.name.replace(` • ${money(price)}`, "");
+      popupState.selectedLabel = `${title} - ${label}`;
+      popupState.selectedAmount = price;
+      updatePopupSummary();
+    }
+  );
+}
+
+function openRedBull() {
+  popupState.owner = "janie";
+  openPopup("Red Bull Drinks", "Choose one Red Bull drink.");
+
+  renderPopupOptions(
+    REDBULL_CHOICES.map(item => ({
+      name: `${item.name} • $9`,
+      sub: item.category
+    })),
+    (choice) => {
+      const label = choice.name.replace(" • $9", "");
+      popupState.selectedLabel = `Red Bull - ${label}`;
+      popupState.selectedAmount = 9;
+      updatePopupSummary();
+    }
+  );
+}
+
+function open64Classic() {
+  popupState.owner = "janie";
+  openPopup("64 oz Classic", "Choose plain or flavored.");
+
+  renderPopupOptions(
+    [
+      { name: "No Flavor • $12", sub: "64 oz classic" },
+      { name: "Flavored • $13", sub: "64 oz classic with one flavor" }
+    ],
+    (_, index) => {
+      if (index === 0) {
+        popupState.selectedLabel = "64 oz Classic - No Flavor";
+        popupState.selectedAmount = 12;
+        updatePopupSummary();
+        return;
+      }
+
+      document.getElementById("popupStepTitle").textContent = "Choose one classic flavor.";
+
+      renderPopupOptions(
+        CLASSIC_FLAVORS.map(flavor => ({
+          name: `${flavor} • $13`,
+          sub: "64 oz classic flavored"
+        })),
+        (choice) => {
+          const flavorName = choice.name.replace(" • $13", "");
+          popupState.selectedLabel = `64 oz Classic - ${flavorName}`;
+          popupState.selectedAmount = 13;
+          updatePopupSummary();
+        }
+      );
+    }
+  );
+}
+
+function open64Specialty() {
+  popupState.owner = "janie";
+  openPopup("64 oz Specialty", "Choose a specialty drink.");
+
+  renderPopupOptions(
+    SPECIALTY_DRINKS.map(name => ({
+      name: `${name} • $15`
+    })),
+    (choice) => {
+      const label = choice.name.replace(" • $15", "");
+      popupState.selectedLabel = `64 oz Specialty - ${label}`;
+      popupState.selectedAmount = 15;
+      updatePopupSummary();
+    }
+  );
+}
+
+function confirmPopupSale() {
+  if (!popupState.owner || !popupState.selectedAmount) {
+    alert("Choose an item first.");
     return;
   }
-  wrap.innerHTML = "";
-  entries.forEach(([name, count]) => {
-    const row = document.createElement("div");
-    row.className = "stats-list-row";
-    row.innerHTML = `<span>${name}</span><strong>${count}</strong>`;
-    wrap.appendChild(row);
+
+  if (popupState.owner === "jessica") {
+    state.jessicaTotal += popupState.selectedAmount;
+  } else {
+    state.janieTotal += popupState.selectedAmount;
+  }
+
+  if (popupState.payment === "cash") {
+    state.cashTotal += popupState.selectedAmount;
+  } else {
+    state.digitalTotal += popupState.selectedAmount;
+  }
+
+  state.entries.push({
+    owner: popupState.owner === "jessica" ? "Jessica" : "Janie",
+    item: popupState.selectedLabel,
+    amount: Number(popupState.selectedAmount.toFixed(2)),
+    payment: popupState.payment
   });
+
+  updateTotalsUI();
+  closePopup();
 }
 
-function renderDaysList() {
-  const wrap = document.getElementById("daysList");
-  const days = Object.values(state.allDays || {}).sort((a, b) => (a.date < b.date ? 1 : -1));
+function updateTotalsUI() {
+  const combined = state.jessicaTotal + state.janieTotal;
+  state.tips = Number(document.getElementById("tipsInput").value || 0);
 
-  if (!days.length) {
-    wrap.innerHTML = `<div class="day-row"><span>No saved days yet.</span></div>`;
+  document.getElementById("jessicaTotal").textContent = money(state.jessicaTotal);
+  document.getElementById("janieTotal").textContent = money(state.janieTotal);
+  document.getElementById("cashTotal").textContent = money(state.cashTotal);
+  document.getElementById("digitalTotal").textContent = money(state.digitalTotal);
+  document.getElementById("tipsTotal").textContent = money(state.tips);
+  document.getElementById("summaryJessica").textContent = money(state.jessicaTotal);
+  document.getElementById("summaryJanie").textContent = money(state.janieTotal);
+  document.getElementById("combinedTotal").textContent = money(combined);
+  document.getElementById("summaryTips").textContent = money(state.tips);
+}
+
+async function saveDay() {
+  const date = document.getElementById("datePicker").value;
+
+  if (!date) {
+    alert("Please select a date first.");
     return;
   }
 
-  wrap.innerHTML = "";
-  days.forEach(day => {
-    const completed = Object.values(day.completedOrders || {});
-    const row = document.createElement("div");
-    row.className = "day-row";
-    row.innerHTML = `
-      <span>${formatDateForDisplay(day.date)}</span>
-      <span>${money(completed.reduce((s, o) => s + Number(o.total || 0), 0))}</span>
+  state.date = date;
+  state.tips = Number(document.getElementById("tipsInput").value || 0);
+
+  const payload = {
+    date,
+    createdAt: Date.now(),
+    jessicaTotal: Number(state.jessicaTotal.toFixed(2)),
+    janieTotal: Number(state.janieTotal.toFixed(2)),
+    combinedTotal: Number((state.jessicaTotal + state.janieTotal).toFixed(2)),
+    cashTotal: Number(state.cashTotal.toFixed(2)),
+    digitalTotal: Number(state.digitalTotal.toFixed(2)),
+    tips: Number(state.tips.toFixed(2)),
+    entries: state.entries
+  };
+
+  try {
+    await set(ref(db, `dailySales/${date}`), payload);
+    alert("Day saved.");
+  } catch (error) {
+    console.error(error);
+    alert("Could not save the day. Check your Firebase setup.");
+  }
+}
+
+function renderHistoryRows(data) {
+  const historyList = document.getElementById("historyList");
+  const rows = Object.values(data || {}).sort((a, b) => {
+    if ((a?.date || "") < (b?.date || "")) return 1;
+    if ((a?.date || "") > (b?.date || "")) return -1;
+    return 0;
+  });
+
+  historyList.innerHTML = "";
+
+  if (!rows.length) {
+    historyList.innerHTML = `
+      <div class="history-row">
+        <div class="history-date">No saved days yet.</div>
+      </div>
     `;
-    row.addEventListener("click", () => openDayDetails(day));
-    wrap.appendChild(row);
+    return;
+  }
+
+  rows.slice(0, 5).forEach(day => {
+    const row = buildDayRow(day);
+    historyList.appendChild(row);
   });
+}
+
+function buildDayRow(day) {
+  const row = document.createElement("div");
+  row.className = "day-list-row";
+
+  row.innerHTML = `
+    <div class="history-date">
+      <span>📅</span>
+      <span>${formatDateForDisplay(day.date)}</span>
+    </div>
+
+    <div class="history-stat jess">
+      <div class="label">Jessica</div>
+      <div class="value">${money(day.jessicaTotal)}</div>
+    </div>
+
+    <div class="history-stat janie">
+      <div class="label">Janie</div>
+      <div class="value">${money(day.janieTotal)}</div>
+    </div>
+
+    <div class="history-stat cash">
+      <div class="label">Cash</div>
+      <div class="value">${money(day.cashTotal)}</div>
+    </div>
+
+    <div class="history-stat digital">
+      <div class="label">Digital</div>
+      <div class="value">${money(day.digitalTotal)}</div>
+    </div>
+
+    <div class="history-stat tips">
+      <div class="label">Tips</div>
+      <div class="value">${money(day.tips)}</div>
+    </div>
+
+    <div class="history-arrow">›</div>
+  `;
+
+  row.addEventListener("click", () => openDayDetails(day));
+  return row;
+}
+
+function renderAllDaysList() {
+  const list = document.getElementById("allDaysList");
+  const rows = Object.values(historyCache || {}).sort((a, b) => {
+    if ((a?.date || "") < (b?.date || "")) return 1;
+    if ((a?.date || "") > (b?.date || "")) return -1;
+    return 0;
+  });
+
+  list.innerHTML = "";
+
+  if (!rows.length) {
+    list.innerHTML = `<div class="history-row"><div class="history-date">No saved days yet.</div></div>`;
+    return;
+  }
+
+  rows.forEach(day => {
+    list.appendChild(buildDayRow(day));
+  });
+}
+
+function openAllDays() {
+  renderAllDaysList();
+  document.getElementById("daysOverlay").classList.remove("hidden");
+}
+
+function closeAllDays() {
+  document.getElementById("daysOverlay").classList.add("hidden");
 }
 
 function openDayDetails(day) {
-  document.getElementById("dayModalTitle").textContent = `Day Details - ${formatDateForDisplay(day.date)}`;
-  const completed = Object.values(day.completedOrders || {}).sort((a, b) => b.completedAt - a.completedAt);
+  document.getElementById("detailTitle").textContent = `Day Details - ${formatDateForDisplay(day.date)}`;
 
-  const counts = buildItemCounts(completed);
-  document.getElementById("dayModalSummary").innerHTML = `
-    <div class="stats-list-row"><span>Sales</span><strong>${money(completed.reduce((s, o) => s + Number(o.total || 0), 0))}</strong></div>
-    <div class="stats-list-row"><span>Orders</span><strong>${completed.length}</strong></div>
-    <div class="stats-list-row"><span>Avg Time</span><strong>${avgTimeFromOrders(completed)}</strong></div>
-    <div class="stats-list-row"><span>Top Item</span><strong>${topItemFromCounts(counts)}</strong></div>
-  `;
-
-  const wrap = document.getElementById("dayModalOrders");
-  if (!completed.length) {
-    wrap.innerHTML = `<div class="day-order-card">No completed orders on this day.</div>`;
-  } else {
-    wrap.innerHTML = "";
-    completed.forEach(order => {
-      const card = document.createElement("div");
-      card.className = "day-order-card";
-      card.innerHTML = `
-        <div class="day-order-head">
-          <div><strong>Order #${order.orderNumber}</strong> ${order.customer ? `— ${order.customer}` : ""}</div>
-          <div><strong>${money(order.total)}</strong></div>
-        </div>
-        <div class="draft-item-sub">Payment: ${order.payment}</div>
-        <div class="draft-item-sub">Service Time: ${formatSeconds(order.serviceSeconds || 0)}</div>
-        <div class="day-order-items">${renderItemsHtml(order.items)}</div>
-      `;
-      wrap.appendChild(card);
-    });
-  }
-
-  document.getElementById("dayModal").classList.remove("hidden");
-}
-
-function refreshOpenOrderTimers() {
-  const timers = document.querySelectorAll("[data-started]");
-  const now = Date.now();
-  timers.forEach(el => {
-    const started = Number(el.dataset.started || 0);
-    const seconds = Math.max(0, Math.floor((now - started) / 1000));
-    el.textContent = formatSeconds(seconds);
-  });
-}
-
-// ---------- item builder ----------
-function openItemBuilder(itemKey) {
-  const def = ITEM_DEFS[itemKey];
-  if (!def) return;
-
-  currentItemBuild = {
-    editIndex: null,
-    key: itemKey,
-    name: def.name,
-    basePrice: def.price,
-    type: def.type,
-    selected: [],
-    addons: [],
-    note: ""
-  };
-
-  renderItemBuilder();
-}
-
-function openItemBuilderFromExisting(index) {
-  const item = state.draft.items[index];
-  currentItemBuild = {
-    editIndex: index,
-    key: null,
-    name: item.name,
-    basePrice: item.basePrice,
-    type: item.type,
-    selected: [...(item.selected || [])],
-    addons: [...(item.addons || [])],
-    note: item.note || ""
-  };
-  renderItemBuilder();
-}
-
-function itemBuildTotal(build) {
-  let total = Number(build.basePrice || 0);
-  if (build.addons.includes("Extra Meat")) total += 3;
-  if (build.addons.includes("Double Meat")) total += 5;
-  return total;
-}
-
-function renderItemBuilder() {
-  const build = currentItemBuild;
-  if (!build) return;
-
-  document.getElementById("itemModalTitle").textContent = build.name;
-  const body = document.getElementById("itemModalBody");
-
-  let toppingOptions = [];
-  let addonOptions = [];
-
-  if (build.type === "hotdog" || build.type === "combo") {
-    toppingOptions = HOTDOG_TOPPINGS;
-  }
-  if (build.type === "asada" || build.type === "cheetoAsada") {
-    toppingOptions = [...FRY_TOPPINGS];
-    addonOptions = ["Extra Meat", "Double Meat"];
-  }
-
-  body.innerHTML = `
-    ${toppingOptions.length ? `
-      <div class="field">
-        <label>Toppings</label>
-        <div class="option-grid" id="toppingsGrid"></div>
-      </div>
-    ` : ""}
-    ${addonOptions.length ? `
-      <div class="field">
-        <label>Add-ons</label>
-        <div class="option-grid" id="addonsGrid"></div>
-      </div>
-    ` : ""}
-    <div class="field">
-      <label>Notes</label>
-      <textarea id="itemNote" rows="3" placeholder="Extra details for this item"></textarea>
+  document.getElementById("detailTotals").innerHTML = `
+    <div class="detail-total-box">
+      <div class="small-label">Jessica</div>
+      <div class="value">${money(day.jessicaTotal)}</div>
     </div>
-    <div class="inline-total">Item Total: <strong id="itemBuildTotal">${money(itemBuildTotal(build))}</strong></div>
+    <div class="detail-total-box">
+      <div class="small-label">Janie</div>
+      <div class="value">${money(day.janieTotal)}</div>
+    </div>
+    <div class="detail-total-box">
+      <div class="small-label">Cash</div>
+      <div class="value">${money(day.cashTotal)}</div>
+    </div>
+    <div class="detail-total-box">
+      <div class="small-label">Digital</div>
+      <div class="value">${money(day.digitalTotal)}</div>
+    </div>
+    <div class="detail-total-box">
+      <div class="small-label">Tips</div>
+      <div class="value">${money(day.tips)}</div>
+    </div>
   `;
 
-  if (toppingOptions.length) {
-    const grid = document.getElementById("toppingsGrid");
-    toppingOptions.forEach(name => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "check-btn";
-      btn.textContent = name;
-      if (build.selected.includes(name)) btn.classList.add("active");
-      btn.addEventListener("click", () => {
-        const has = build.selected.includes(name);
-        if (has) {
-          build.selected = build.selected.filter(x => x !== name);
-          btn.classList.remove("active");
-        } else {
-          build.selected.push(name);
-          btn.classList.add("active");
-        }
-      });
-      grid.appendChild(btn);
+  const entriesWrap = document.getElementById("detailEntries");
+  entriesWrap.innerHTML = "";
+
+  const entries = Array.isArray(day.entries) ? day.entries : [];
+
+  if (!entries.length) {
+    entriesWrap.innerHTML = `<div class="detail-entry"><div class="detail-entry-top">No item details saved for this day.</div></div>`;
+  } else {
+    entries.forEach(entry => {
+      const box = document.createElement("div");
+      box.className = "detail-entry";
+      box.innerHTML = `
+        <div class="detail-entry-top">
+          <span>${entry.owner}</span>
+          <span>${money(entry.amount)}</span>
+        </div>
+        <div class="detail-entry-sub">${entry.item}</div>
+        <div class="detail-entry-sub">Payment: ${entry.payment}</div>
+      `;
+      entriesWrap.appendChild(box);
     });
   }
 
-  if (addonOptions.length) {
-    const grid = document.getElementById("addonsGrid");
-    addonOptions.forEach(name => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "check-btn";
-      btn.textContent = name + (name === "Extra Meat" ? " +$3" : " +$5");
-      if (build.addons.includes(name)) btn.classList.add("active");
-      btn.addEventListener("click", () => {
-        const has = build.addons.includes(name);
-        if (has) {
-          build.addons = build.addons.filter(x => x !== name);
-          btn.classList.remove("active");
-        } else {
-          build.addons.push(name);
-          btn.classList.add("active");
-        }
-        document.getElementById("itemBuildTotal").textContent = money(itemBuildTotal(build));
-      });
-      grid.appendChild(btn);
-    });
-  }
-
-  document.getElementById("itemNote").value = build.note || "";
-  document.getElementById("itemModal").classList.remove("hidden");
+  document.getElementById("detailOverlay").classList.remove("hidden");
 }
 
-function saveBuiltItemToDraft() {
-  if (!currentItemBuild) return;
-  currentItemBuild.note = document.getElementById("itemNote")?.value?.trim() || "";
-  const builtItem = {
-    key: currentItemBuild.key,
-    name: currentItemBuild.name,
-    type: currentItemBuild.type,
-    basePrice: currentItemBuild.basePrice,
-    selected: [...currentItemBuild.selected],
-    addons: [...currentItemBuild.addons],
-    note: currentItemBuild.note,
-    lineTotal: itemBuildTotal(currentItemBuild)
-  };
+function closeDayDetails() {
+  document.getElementById("detailOverlay").classList.add("hidden");
+}
 
-  if (currentItemBuild.editIndex === null) {
-    state.draft.items.push(builtItem);
+function loadHistory() {
+  const historyList = document.getElementById("historyList");
+
+  if (!historyBound) {
+    historyList.innerHTML = `
+      <div class="history-row">
+        <div class="history-date">Loading...</div>
+      </div>
+    `;
+
+    onValue(
+      ref(db, "dailySales"),
+      (snapshot) => {
+        historyCache = snapshot.val() || {};
+        renderHistoryRows(historyCache);
+      },
+      (error) => {
+        console.error(error);
+        historyList.innerHTML = `
+          <div class="history-row">
+            <div class="history-date">Could not load history.</div>
+          </div>
+        `;
+      }
+    );
+
+    historyBound = true;
   } else {
-    state.draft.items[currentItemBuild.editIndex] = builtItem;
+    renderHistoryRows(historyCache);
   }
-
-  currentItemBuild = null;
-  document.getElementById("itemModal").classList.add("hidden");
-  renderDraft();
 }
 
-// ---------- orders ----------
-async function sendDraftToOpenOrders() {
-  if (!state.draft.items.length) {
-    alert("Add at least one item first.");
-    return;
-  }
-
-  const date = state.currentDate;
-  await ensureDayNode(date);
-
-  const orderNumber = state.editingOrderId
-    ? (getCurrentDayNode().openOrders?.[state.editingOrderId]?.orderNumber || await nextOrderNumber(date))
-    : await nextOrderNumber(date);
-
-  const payload = {
-    orderNumber,
-    customer: state.draft.customer.trim(),
-    payment: state.draft.payment,
-    items: state.draft.items,
-    total: Number(getDraftTotal().toFixed(2)),
-    startedAt: Date.now(),
-    createdAt: Date.now()
-  };
-
-  if (state.editingOrderId) {
-    await set(ref(db, `duckysTracker/days/${date}/openOrders/${state.editingOrderId}`), payload);
-  } else {
-    const newRef = push(ref(db, `duckysTracker/days/${date}/openOrders`));
-    await set(newRef, payload);
-  }
-
-  resetDraft();
-  setActiveScreen("open");
-}
-
-async function markOrderHandedOut(orderId) {
-  const order = getCurrentDayNode().openOrders?.[orderId];
-  if (!order) return;
-
-  const completedAt = Date.now();
-  const serviceSeconds = Math.max(0, Math.floor((completedAt - Number(order.startedAt || completedAt)) / 1000));
-
-  await set(ref(db, `duckysTracker/days/${state.currentDate}/completedOrders/${orderId}`), {
-    ...order,
-    completedAt,
-    serviceSeconds
-  });
-
-  await remove(ref(db, `duckysTracker/days/${state.currentDate}/openOrders/${orderId}`));
-}
-
-async function removeOpenOrder(orderId) {
-  const yes = confirm("Remove this order?");
-  if (!yes) return;
-  await remove(ref(db, `duckysTracker/days/${state.currentDate}/openOrders/${orderId}`));
-}
-
-async function editOpenOrder(orderId) {
-  const order = getCurrentDayNode().openOrders?.[orderId];
-  if (!order) return;
-
-  state.editingOrderId = orderId;
-  state.draft.customer = order.customer || "";
-  state.draft.payment = order.payment || "cash";
-  state.draft.items = JSON.parse(JSON.stringify(order.items || []));
-
-  await remove(ref(db, `duckysTracker/days/${state.currentDate}/openOrders/${orderId}`));
-
-  renderDraft();
-  setActiveScreen("build");
-}
-
-function resetDraft() {
-  state.editingOrderId = null;
-  state.draft = {
-    customer: "",
-    payment: "cash",
-    items: []
-  };
-  renderDraft();
-}
-
-// ---------- firebase watch ----------
-function bindDayWatcher() {
-  onValue(ref(db, "duckysTracker/days"), snapshot => {
-    state.allDays = snapshot.val() || {};
-    state.openOrders = getCurrentDayNode().openOrders || {};
-    state.completedOrders = getCurrentDayNode().completedOrders || {};
-    renderHomeSummary();
-    renderOpenOrders();
-    renderHandedOut();
-    renderStatsAndHistory();
-  });
-}
-
-// ---------- events ----------
 function bindEvents() {
-  document.querySelectorAll("[data-go]").forEach(btn => {
-    btn.addEventListener("click", () => setActiveScreen(btn.dataset.go));
+  document.getElementById("datePicker").addEventListener("change", (e) => {
+    state.date = e.target.value;
   });
 
-  document.getElementById("workDate").addEventListener("change", async (e) => {
-    state.currentDate = e.target.value;
-    await ensureDayNode(state.currentDate);
-    renderHomeSummary();
-    renderOpenOrders();
-    renderHandedOut();
-    renderStatsAndHistory();
+  document.getElementById("tipsInput").addEventListener("input", () => {
+    updateTotalsUI();
   });
 
-  document.querySelectorAll(".item-btn").forEach(btn => {
-    btn.addEventListener("click", () => openItemBuilder(btn.dataset.item));
+  document.getElementById("saveDayBtn").addEventListener("click", saveDay);
+  document.getElementById("viewDaysBtn").addEventListener("click", openAllDays);
+  document.getElementById("refreshHistoryBtn").addEventListener("click", loadHistory);
+
+  document.getElementById("closePopupBtn").addEventListener("click", closePopup);
+  document.getElementById("popupDoneBtn").addEventListener("click", confirmPopupSale);
+  document.getElementById("popupCashBtn").addEventListener("click", () => {
+    setPopupPayment("cash");
+    updatePopupSummary();
+  });
+  document.getElementById("popupDigitalBtn").addEventListener("click", () => {
+    setPopupPayment("digital");
+    updatePopupSummary();
   });
 
-  document.querySelectorAll(".pay-pill").forEach(btn => {
-    btn.addEventListener("click", () => {
-      state.draft.payment = btn.dataset.payment;
-      renderDraft();
-    });
+  document.getElementById("closeDaysBtn").addEventListener("click", closeAllDays);
+  document.getElementById("closeDetailBtn").addEventListener("click", closeDayDetails);
+
+  document.getElementById("popupOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "popupOverlay") closePopup();
   });
 
-  document.getElementById("orderCustomer").addEventListener("input", e => {
-    state.draft.customer = e.target.value;
+  document.getElementById("daysOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "daysOverlay") closeAllDays();
   });
 
-  document.getElementById("clearDraftBtn").addEventListener("click", resetDraft);
-  document.getElementById("sendOrderBtn").addEventListener("click", sendDraftToOpenOrders);
-
-  document.getElementById("closeItemModalBtn").addEventListener("click", () => {
-    currentItemBuild = null;
-    document.getElementById("itemModal").classList.add("hidden");
-  });
-  document.getElementById("itemModalSaveBtn").addEventListener("click", saveBuiltItemToDraft);
-
-  document.getElementById("closeDayModalBtn").addEventListener("click", () => {
-    document.getElementById("dayModal").classList.add("hidden");
-  });
-
-  document.getElementById("saveDayBtn").addEventListener("click", async () => {
-    await ensureDayNode(state.currentDate);
-    alert(`Day ${formatDateForDisplay(state.currentDate)} is already being saved live. Use Stats / History to review it.`);
-  });
-
-  document.getElementById("viewDaysBtn").addEventListener("click", () => setActiveScreen("stats"));
-  document.getElementById("refreshHistoryBtn").addEventListener("click", renderStatsAndHistory);
-
-  document.getElementById("tipsInput").addEventListener("input", async e => {
-    await ensureDayNode(state.currentDate);
-    const tips = Number(e.target.value || 0);
-    await set(ref(db, `duckysTracker/days/${state.currentDate}/tips`), tips);
-  });
-
-  document.getElementById("itemModal").addEventListener("click", e => {
-    if (e.target.id === "itemModal") {
-      currentItemBuild = null;
-      document.getElementById("itemModal").classList.add("hidden");
-    }
-  });
-
-  document.getElementById("dayModal").addEventListener("click", e => {
-    if (e.target.id === "dayModal") {
-      document.getElementById("dayModal").classList.add("hidden");
-    }
+  document.getElementById("detailOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "detailOverlay") closeDayDetails();
   });
 }
 
-// ---------- live intervals ----------
-function startLiveIntervals() {
-  if (openTimerInterval) clearInterval(openTimerInterval);
-  if (handedTimerInterval) clearInterval(handedTimerInterval);
-
-  openTimerInterval = setInterval(() => {
-    refreshOpenOrderTimers();
-  }, 1000);
-
-  handedTimerInterval = setInterval(() => {
-    renderHandedOut();
-  }, 1000);
-}
-
-// ---------- stats extras ----------
-function syncTipsFromDay() {
-  const tips = Number(state.allDays?.[state.currentDate]?.tips || 0);
-  document.getElementById("tipsInput").value = tips ? String(tips) : "";
-}
-
-// ---------- init ----------
-async function init() {
-  state.currentDate = todayLocalValue();
-  document.getElementById("workDate").value = state.currentDate;
-  await ensureDayNode(state.currentDate);
-
+function init() {
+  renderMenus();
   bindEvents();
-  bindDayWatcher();
-  renderDraft();
-  startLiveIntervals();
-
-  onValue(ref(db, `duckysTracker/days/${state.currentDate}/tips`), snapshot => {
-    document.getElementById("tipsInput").value = snapshot.exists() ? String(snapshot.val()) : "";
-  });
+  setDefaultDate();
+  updateTotalsUI();
+  loadHistory();
 }
 
 init();
