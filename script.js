@@ -254,8 +254,6 @@ function renderPopupOptions(options, onChoose) {
       ${option.sub ? `<div class="popup-option-sub">${option.sub}</div>` : ""}
     `;
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".popup-option").forEach(el => el.classList.remove("active"));
-      btn.classList.add("active");
       onChoose(option, index);
     });
     wrap.appendChild(btn);
@@ -349,32 +347,105 @@ function openClassicLemonade() {
   renderPopupOptions(
     [
       { name: "No Flavor • $6", sub: "Regular classic lemonade" },
-      { name: "Flavored • $7", sub: "One regular flavor" }
+      { name: "Flavored • base $6 + $1 per flavor", sub: "Choose one or more flavors" }
     ],
     (_, index) => {
       if (index === 0) {
-        popupState.selectedLabel = "Classic Lemonade - No Flavor";
-        popupState.selectedAmount = 6;
-        updatePopupSummary();
+        openClassicAddons("Classic Lemonade - No Flavor", 6);
         return;
       }
 
-      document.getElementById("popupStepTitle").textContent = "Choose one classic flavor.";
+      const selectedFlavors = [];
+      document.getElementById("popupStepTitle").textContent = "Tap every flavor used. Each one adds $1.";
 
       renderPopupOptions(
         CLASSIC_FLAVORS.map(flavor => ({
-          name: `${flavor} • $7`,
-          sub: "Classic flavored lemonade"
+          name: flavor,
+          sub: "Adds $1"
         })),
-        (choice) => {
-          const flavorName = choice.name.replace(" • $7", "");
-          popupState.selectedLabel = `Classic Lemonade - ${flavorName}`;
-          popupState.selectedAmount = 7;
-          updatePopupSummary();
+        (choice, flavorIndex) => {
+          const optionButtons = document.querySelectorAll(".popup-option");
+          const clickedBtn = optionButtons[flavorIndex];
+          const flavorName = choice.name;
+
+          const alreadySelected = selectedFlavors.includes(flavorName);
+
+          if (alreadySelected) {
+            const removeIndex = selectedFlavors.indexOf(flavorName);
+            selectedFlavors.splice(removeIndex, 1);
+            clickedBtn.classList.remove("active");
+          } else {
+            selectedFlavors.push(flavorName);
+            clickedBtn.classList.add("active");
+          }
+
+          if (selectedFlavors.length === 0) {
+            popupState.selectedLabel = "";
+            popupState.selectedAmount = 0;
+            updatePopupSummary();
+            return;
+          }
+
+          const baseAmount = 6 + selectedFlavors.length;
+          const label = `Classic Lemonade - ${selectedFlavors.join(", ")}`;
+
+          openClassicAddons(label, baseAmount, selectedFlavors);
         }
       );
     }
   );
+}
+function openClassicAddons(baseLabel, baseAmount, selectedFlavors = []) {
+  const selectedAddons = [];
+
+  document.getElementById("popupStepTitle").textContent = "Choose add-ons if needed.";
+
+  renderPopupOptions(
+    [
+      { name: "No Add-ons", sub: `Keep it ${money(baseAmount)}` },
+      { name: "Boba +$1", sub: "Add boba" },
+      { name: "Make it Creamy +$1", sub: "Add creamy" }
+    ],
+    (choice, index) => {
+      const optionButtons = document.querySelectorAll(".popup-option");
+
+      if (index === 0) {
+        selectedAddons.length = 0;
+        optionButtons.forEach(btn => btn.classList.remove("active"));
+        optionButtons[0].classList.add("active");
+
+        popupState.selectedLabel = baseLabel;
+        popupState.selectedAmount = baseAmount;
+        updatePopupSummary();
+        return;
+      }
+
+      optionButtons[0].classList.remove("active");
+
+      const addonName = index === 1 ? "Boba" : "Creamy";
+      const alreadySelected = selectedAddons.includes(addonName);
+
+      if (alreadySelected) {
+        const removeIndex = selectedAddons.indexOf(addonName);
+        selectedAddons.splice(removeIndex, 1);
+        optionButtons[index].classList.remove("active");
+      } else {
+        selectedAddons.push(addonName);
+        optionButtons[index].classList.add("active");
+      }
+
+      const total = baseAmount + selectedAddons.length;
+      const addonText = selectedAddons.length ? ` + ${selectedAddons.join(" + ")}` : "";
+
+      popupState.selectedLabel = `${baseLabel}${addonText}`;
+      popupState.selectedAmount = total;
+      updatePopupSummary();
+    }
+  );
+
+  popupState.selectedLabel = baseLabel;
+  popupState.selectedAmount = baseAmount;
+  updatePopupSummary();
 }
 
 function openJanieList(owner, title, items, price) {
