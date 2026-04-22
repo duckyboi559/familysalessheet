@@ -2,73 +2,167 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily Sales Tracker</title>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="page-bg"></div>
 
-<div class="app">
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-box">
+        <img src="images/logo.png" alt="Business Logo" class="brand-logo" />
+      </div>
 
-  <h1>Daily Sales Tracker</h1>
+      <div class="title-wrap">
+        <h1>♡ Daily Sales Tracker ♡</h1>
+      </div>
+    </header>
 
-  <!-- DATE -->
-  <div class="card">
-    <label>Select Date:</label>
-    <input type="date" id="datePicker"/>
-  </div>
+    <section class="date-card glass-card">
+      <div class="date-label">
+        <span class="mini-icon">📅</span>
+        <span>Select Date:</span>
+      </div>
+      <input type="date" id="datePicker" />
+    </section>
 
-  <!-- JESSICA -->
-  <div class="card">
-    <h2>Jessica</h2>
-    <div id="jessicaItems"></div>
-    <p>Total: $<span id="jessicaTotal">0</span></p>
-  </div>
+    <section class="main-grid">
+      <div class="glass-card section-card owner-card">
+        <div class="section-header">
+          <div class="owner-badge">🥞</div>
+          <h2>Jessica</h2>
+        </div>
 
-  <!-- JANIE -->
-  <div class="card">
-    <h2>Janie</h2>
-    <div id="janieItems"></div>
-    <p>Total: $<span id="janieTotal">0</span></p>
-  </div>
+        <div class="menu-list" id="jessicaMenuList"></div>
 
-  <!-- PAYMENTS -->
-  <div class="card">
-    <h2>Payments</h2>
-    <button onclick="setPayment('cash')">Cash</button>
-    <button onclick="setPayment('digital')">Digital</button>
-    <button onclick="setPayment('split')">Split</button>
-    <p>Cash: $<span id="cashTotal">0</span></p>
-    <p>Digital: $<span id="digitalTotal">0</span></p>
-  </div>
+        <div class="owner-total-row">
+          <span>Jessica Total</span>
+          <strong id="jessicaTotal">$0.00</strong>
+        </div>
+      </div>
 
-  <!-- TIPS -->
-  <div class="card">
-    <h2>Tips</h2>
-    <input type="number" id="tipsInput" placeholder="Enter tips"/>
-  </div>
+      <div class="glass-card section-card owner-card">
+        <div class="section-header">
+          <div class="owner-badge">🍋</div>
+          <h2>Janie</h2>
+        </div>
 
-  <!-- TOTAL -->
-  <div class="card">
-    <h2>Summary</h2>
-    <p>Combined: $<span id="combinedTotal">0</span></p>
-    <p>Total Tips: $<span id="tipsTotal">0</span></p>
-  </div>
+        <div class="menu-list" id="janieMenuList"></div>
 
-  <button class="saveBtn" onclick="saveDay()">Save Day</button>
+        <div class="owner-total-row">
+          <span>Janie Total</span>
+          <strong id="janieTotal">$0.00</strong>
+        </div>
+      </div>
+    </section>
 
-  <!-- HISTORY -->
-  <div class="card">
-    <h2>Previous Days</h2>
-    <div id="history"></div>
-  </div>
+    <section class="bottom-grid">
+      <div class="glass-card payments-card">
+        <div class="section-title-row">
+          <span class="section-emoji">💳</span>
+          <h3>Payments</h3>
+        </div>
 
-</div>
+        <div class="payment-buttons">
+          <button class="pay-btn active" data-method="cash" onclick="setPaymentMethod('cash')">
+            <span class="pay-emoji">💵</span>
+            <span>Cash</span>
+          </button>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+          <button class="pay-btn" data-method="digital" onclick="setPaymentMethod('digital')">
+            <span class="pay-emoji">📱</span>
+            <span>Digital</span>
+          </button>
 
-<script src="script.js"></script>
+          <button class="pay-btn" data-method="split" onclick="setPaymentMethod('split')">
+            <span class="pay-emoji">↪</span>
+            <span>Split</span>
+          </button>
+        </div>
+
+        <div class="payment-totals">
+          <div class="payment-total cash-box">
+            <div class="small-label">Cash Total</div>
+            <div id="cashTotal">$0.00</div>
+          </div>
+
+          <div class="payment-total digital-box">
+            <div class="small-label">Digital Total</div>
+            <div id="digitalTotal">$0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card tips-card">
+        <div class="section-title-row">
+          <span class="section-emoji">🫙</span>
+          <h3>Tips</h3>
+        </div>
+
+        <div class="tips-input-wrap">
+          <span class="tips-dollar">$</span>
+          <input type="number" id="tipsInput" min="0" step="0.01" placeholder="Enter total tips" />
+        </div>
+
+        <div class="tips-total-box">
+          <div class="small-label">Total Tips</div>
+          <div id="tipsTotal">$0.00</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass-card summary-card">
+      <div class="section-title-row">
+        <span class="section-emoji">🧮</span>
+        <h3>Summary</h3>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="small-label">Jessica Total</div>
+          <div id="summaryJessica">$0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="small-label">Janie Total</div>
+          <div id="summaryJanie">$0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="small-label">Combined Total</div>
+          <div id="combinedTotal">$0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="small-label">Total Tips</div>
+          <div id="summaryTips">$0.00</div>
+        </div>
+      </div>
+    </section>
+
+    <button class="save-day-btn" onclick="saveDay()">
+      <span class="save-icon">💾</span>
+      <span>Save Day</span>
+    </button>
+
+    <section class="glass-card history-card">
+      <div class="history-top">
+        <div class="section-title-row">
+          <span class="section-emoji">📅</span>
+          <h3>Previous Days</h3>
+        </div>
+
+        <button class="refresh-btn" onclick="loadHistory()">⟳ Refresh</button>
+      </div>
+
+      <div class="history-list" id="historyList"></div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
