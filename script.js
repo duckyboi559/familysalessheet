@@ -19,18 +19,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const JESSICA_BUILT = [
-  { name: "Classic #1", price: 10, sub: "20 minis" },
-  { name: "Classic #2", price: 12, sub: "25 minis" },
-  { name: "Churro Overload", price: 15, sub: "30 minis" },
-  { name: "Oreo Banana Dulce", price: 10, sub: "20 minis style pricing" },
-  { name: "Dubai Chocolate", price: 12, sub: "25 minis style pricing" },
-  { name: "Oreo Overload", price: 15, sub: "30 minis style pricing" },
-  { name: "Tres Leches", price: 15, sub: "30 minis style pricing" },
-  { name: "S'mores", price: 15, sub: "30 minis style pricing" }
+const BUILT_FLAVORS = [
+  "Classic #1",
+  "Classic #2",
+  "Churro Overload",
+  "Oreo Banana Dulce",
+  "Dubai Chocolate",
+  "Oreo Overload",
+  "Tres Leches",
+  "S'mores"
 ];
 
-const JESSICA_YOUR_WAY_SIZES = [
+const BUILT_SIZES = [
+  { name: "20 Minis", price: 10 },
+  { name: "25 Minis", price: 12 },
+  { name: "30 Minis", price: 15 }
+];
+
+const YOUR_WAY_SIZES = [
   { name: "20 Minis", price: 8 },
   { name: "25 Minis", price: 10 },
   { name: "30 Minis", price: 12 }
@@ -125,17 +131,18 @@ const state = {
   janieTotal: 0,
   cashTotal: 0,
   digitalTotal: 0,
-  tips: 0
+  tips: 0,
+  entries: []
 };
 
 const popupState = {
   owner: "",
   payment: "cash",
   selectedLabel: "",
-  selectedAmount: 0,
-  onChoose: null
+  selectedAmount: 0
 };
 
+let historyCache = {};
 let historyBound = false;
 
 function money(value) {
@@ -202,8 +209,8 @@ function handleMenuOpen(owner, id) {
   if (owner === "jessica") {
     if (id === "built") openJessicaBuilt();
     if (id === "your_way") openJessicaYourWay();
-    if (id === "bite_stack") openSimpleSale("jessica", "Bite Stack", 5);
-    if (id === "dubai_strawberries") openSimpleSale("jessica", "Dubai Strawberries", 12);
+    if (id === "bite_stack") openSimpleSale("jessica", "Bite Stack", 5, "10 minis");
+    if (id === "dubai_strawberries") openSimpleSale("jessica", "Dubai Strawberries", 12, "");
     return;
   }
 
@@ -223,11 +230,10 @@ function openPopup(title, stepTitle = "") {
   document.getElementById("popupOverlay").classList.remove("hidden");
 
   popupState.payment = "cash";
-  setPopupPayment("cash");
   popupState.selectedLabel = "";
   popupState.selectedAmount = 0;
-  popupState.onChoose = null;
 
+  setPopupPayment("cash");
   updatePopupSummary();
 }
 
@@ -238,8 +244,6 @@ function closePopup() {
 function renderPopupOptions(options, onChoose) {
   const wrap = document.getElementById("popupOptions");
   wrap.innerHTML = "";
-
-  popupState.onChoose = onChoose;
 
   options.forEach((option, index) => {
     const btn = document.createElement("button");
@@ -275,7 +279,7 @@ function updatePopupSummary() {
   box.textContent = `${popupState.selectedLabel} • ${money(popupState.selectedAmount)} • ${popupState.payment}`;
 }
 
-function openSimpleSale(owner, name, amount) {
+function openSimpleSale(owner, name, amount, sub = "") {
   popupState.owner = owner;
   openPopup(name, "Choose payment, then tap Done.");
 
@@ -285,26 +289,37 @@ function openSimpleSale(owner, name, amount) {
 
   document.getElementById("popupOptions").innerHTML = `
     <button class="popup-option active" type="button">
-      <div class="popup-option-title">${name}</div>
-      <div class="popup-option-sub">${money(amount)}</div>
+      <div class="popup-option-title">${name} • ${money(amount)}</div>
+      ${sub ? `<div class="popup-option-sub">${sub}</div>` : ""}
     </button>
   `;
 }
 
 function openJessicaBuilt() {
   popupState.owner = "jessica";
-  openPopup("Built Pancakes", "Choose one built option.");
+  openPopup("Built Pancakes", "Choose a size first.");
 
   renderPopupOptions(
-    JESSICA_BUILT.map(item => ({
+    BUILT_SIZES.map(item => ({
       name: `${item.name} • ${money(item.price)}`,
-      sub: item.sub
+      sub: "Built pancake size"
     })),
-    (_, index) => {
-      const item = JESSICA_BUILT[index];
-      popupState.selectedLabel = item.name;
-      popupState.selectedAmount = item.price;
-      updatePopupSummary();
+    (_, sizeIndex) => {
+      const pickedSize = BUILT_SIZES[sizeIndex];
+
+      document.getElementById("popupStepTitle").textContent = "Now choose the built flavor.";
+
+      renderPopupOptions(
+        BUILT_FLAVORS.map(flavor => ({
+          name: flavor,
+          sub: `${pickedSize.name} • ${money(pickedSize.price)}`
+        })),
+        (choice) => {
+          popupState.selectedLabel = `Built Pancakes - ${pickedSize.name} - ${choice.name}`;
+          popupState.selectedAmount = pickedSize.price;
+          updatePopupSummary();
+        }
+      );
     }
   );
 }
@@ -314,12 +329,12 @@ function openJessicaYourWay() {
   openPopup("Stack It Your Way", "Choose a size.");
 
   renderPopupOptions(
-    JESSICA_YOUR_WAY_SIZES.map(item => ({
+    YOUR_WAY_SIZES.map(item => ({
       name: `${item.name} • ${money(item.price)}`,
       sub: "2 toppings, 1 drizzle, 1 fruit + whip"
     })),
     (_, index) => {
-      const item = JESSICA_YOUR_WAY_SIZES[index];
+      const item = YOUR_WAY_SIZES[index];
       popupState.selectedLabel = `Stack It Your Way - ${item.name}`;
       popupState.selectedAmount = item.price;
       updatePopupSummary();
@@ -334,7 +349,7 @@ function openClassicLemonade() {
   renderPopupOptions(
     [
       { name: "No Flavor • $6", sub: "Regular classic lemonade" },
-      { name: "Flavored • base $6 + $1 per flavor", sub: "Choose from regular flavors" }
+      { name: "Flavored • $7", sub: "One regular flavor" }
     ],
     (_, index) => {
       if (index === 0) {
@@ -343,6 +358,8 @@ function openClassicLemonade() {
         updatePopupSummary();
         return;
       }
+
+      document.getElementById("popupStepTitle").textContent = "Choose one classic flavor.";
 
       renderPopupOptions(
         CLASSIC_FLAVORS.map(flavor => ({
@@ -356,8 +373,6 @@ function openClassicLemonade() {
           updatePopupSummary();
         }
       );
-
-      document.getElementById("popupStepTitle").textContent = "Choose one classic flavor.";
     }
   );
 }
@@ -381,7 +396,7 @@ function openJanieList(owner, title, items, price) {
 
 function openRedBull() {
   popupState.owner = "janie";
-  openPopup("Red Bull Drinks", "Choose one Red Bull flavor or drink.");
+  openPopup("Red Bull Drinks", "Choose one Red Bull drink.");
 
   renderPopupOptions(
     REDBULL_CHOICES.map(item => ({
@@ -414,6 +429,8 @@ function open64Classic() {
         return;
       }
 
+      document.getElementById("popupStepTitle").textContent = "Choose one classic flavor.";
+
       renderPopupOptions(
         CLASSIC_FLAVORS.map(flavor => ({
           name: `${flavor} • $13`,
@@ -426,8 +443,6 @@ function open64Classic() {
           updatePopupSummary();
         }
       );
-
-      document.getElementById("popupStepTitle").textContent = "Choose one classic flavor.";
     }
   );
 }
@@ -467,6 +482,13 @@ function confirmPopupSale() {
     state.digitalTotal += popupState.selectedAmount;
   }
 
+  state.entries.push({
+    owner: popupState.owner === "jessica" ? "Jessica" : "Janie",
+    item: popupState.selectedLabel,
+    amount: Number(popupState.selectedAmount.toFixed(2)),
+    payment: popupState.payment
+  });
+
   updateTotalsUI();
   closePopup();
 }
@@ -505,7 +527,8 @@ async function saveDay() {
     combinedTotal: Number((state.jessicaTotal + state.janieTotal).toFixed(2)),
     cashTotal: Number(state.cashTotal.toFixed(2)),
     digitalTotal: Number(state.digitalTotal.toFixed(2)),
-    tips: Number(state.tips.toFixed(2))
+    tips: Number(state.tips.toFixed(2)),
+    entries: state.entries
   };
 
   try {
@@ -525,6 +548,8 @@ function renderHistoryRows(data) {
     return 0;
   });
 
+  historyList.innerHTML = "";
+
   if (!rows.length) {
     historyList.innerHTML = `
       <div class="history-row">
@@ -534,48 +559,137 @@ function renderHistoryRows(data) {
     return;
   }
 
-  historyList.innerHTML = "";
-
-  rows.forEach(day => {
-    const row = document.createElement("div");
-    row.className = "history-row";
-
-    row.innerHTML = `
-      <div class="history-date">
-        <span>📅</span>
-        <span>${formatDateForDisplay(day.date)}</span>
-      </div>
-
-      <div class="history-stat jess">
-        <div class="label">Jessica</div>
-        <div class="value">${money(day.jessicaTotal)}</div>
-      </div>
-
-      <div class="history-stat janie">
-        <div class="label">Janie</div>
-        <div class="value">${money(day.janieTotal)}</div>
-      </div>
-
-      <div class="history-stat cash">
-        <div class="label">Cash</div>
-        <div class="value">${money(day.cashTotal)}</div>
-      </div>
-
-      <div class="history-stat digital">
-        <div class="label">Digital</div>
-        <div class="value">${money(day.digitalTotal)}</div>
-      </div>
-
-      <div class="history-stat tips">
-        <div class="label">Tips</div>
-        <div class="value">${money(day.tips)}</div>
-      </div>
-
-      <div class="history-arrow">›</div>
-    `;
-
+  rows.slice(0, 5).forEach(day => {
+    const row = buildDayRow(day);
     historyList.appendChild(row);
   });
+}
+
+function buildDayRow(day) {
+  const row = document.createElement("div");
+  row.className = "day-list-row";
+
+  row.innerHTML = `
+    <div class="history-date">
+      <span>📅</span>
+      <span>${formatDateForDisplay(day.date)}</span>
+    </div>
+
+    <div class="history-stat jess">
+      <div class="label">Jessica</div>
+      <div class="value">${money(day.jessicaTotal)}</div>
+    </div>
+
+    <div class="history-stat janie">
+      <div class="label">Janie</div>
+      <div class="value">${money(day.janieTotal)}</div>
+    </div>
+
+    <div class="history-stat cash">
+      <div class="label">Cash</div>
+      <div class="value">${money(day.cashTotal)}</div>
+    </div>
+
+    <div class="history-stat digital">
+      <div class="label">Digital</div>
+      <div class="value">${money(day.digitalTotal)}</div>
+    </div>
+
+    <div class="history-stat tips">
+      <div class="label">Tips</div>
+      <div class="value">${money(day.tips)}</div>
+    </div>
+
+    <div class="history-arrow">›</div>
+  `;
+
+  row.addEventListener("click", () => openDayDetails(day));
+  return row;
+}
+
+function renderAllDaysList() {
+  const list = document.getElementById("allDaysList");
+  const rows = Object.values(historyCache || {}).sort((a, b) => {
+    if ((a?.date || "") < (b?.date || "")) return 1;
+    if ((a?.date || "") > (b?.date || "")) return -1;
+    return 0;
+  });
+
+  list.innerHTML = "";
+
+  if (!rows.length) {
+    list.innerHTML = `<div class="history-row"><div class="history-date">No saved days yet.</div></div>`;
+    return;
+  }
+
+  rows.forEach(day => {
+    list.appendChild(buildDayRow(day));
+  });
+}
+
+function openAllDays() {
+  renderAllDaysList();
+  document.getElementById("daysOverlay").classList.remove("hidden");
+}
+
+function closeAllDays() {
+  document.getElementById("daysOverlay").classList.add("hidden");
+}
+
+function openDayDetails(day) {
+  document.getElementById("detailTitle").textContent = `Day Details - ${formatDateForDisplay(day.date)}`;
+
+  document.getElementById("detailTotals").innerHTML = `
+    <div class="detail-total-box">
+      <div class="small-label">Jessica</div>
+      <div class="value">${money(day.jessicaTotal)}</div>
+    </div>
+    <div class="detail-total-box">
+      <div class="small-label">Janie</div>
+      <div class="value">${money(day.janieTotal)}</div>
+    </div>
+    <div class="detail-total-box">
+      <div class="small-label">Cash</div>
+      <div class="value">${money(day.cashTotal)}</div>
+    </div>
+    <div class="detail-total-box">
+      <div class="small-label">Digital</div>
+      <div class="value">${money(day.digitalTotal)}</div>
+    </div>
+    <div class="detail-total-box">
+      <div class="small-label">Tips</div>
+      <div class="value">${money(day.tips)}</div>
+    </div>
+  `;
+
+  const entriesWrap = document.getElementById("detailEntries");
+  entriesWrap.innerHTML = "";
+
+  const entries = Array.isArray(day.entries) ? day.entries : [];
+
+  if (!entries.length) {
+    entriesWrap.innerHTML = `<div class="detail-entry"><div class="detail-entry-top">No item details saved for this day.</div></div>`;
+  } else {
+    entries.forEach(entry => {
+      const box = document.createElement("div");
+      box.className = "detail-entry";
+      box.innerHTML = `
+        <div class="detail-entry-top">
+          <span>${entry.owner}</span>
+          <span>${money(entry.amount)}</span>
+        </div>
+        <div class="detail-entry-sub">${entry.item}</div>
+        <div class="detail-entry-sub">Payment: ${entry.payment}</div>
+      `;
+      entriesWrap.appendChild(box);
+    });
+  }
+
+  document.getElementById("detailOverlay").classList.remove("hidden");
+}
+
+function closeDayDetails() {
+  document.getElementById("detailOverlay").classList.add("hidden");
 }
 
 function loadHistory() {
@@ -591,8 +705,8 @@ function loadHistory() {
     onValue(
       ref(db, "dailySales"),
       (snapshot) => {
-        const data = snapshot.val() || {};
-        renderHistoryRows(data);
+        historyCache = snapshot.val() || {};
+        renderHistoryRows(historyCache);
       },
       (error) => {
         console.error(error);
@@ -605,6 +719,8 @@ function loadHistory() {
     );
 
     historyBound = true;
+  } else {
+    renderHistoryRows(historyCache);
   }
 }
 
@@ -618,6 +734,7 @@ function bindEvents() {
   });
 
   document.getElementById("saveDayBtn").addEventListener("click", saveDay);
+  document.getElementById("viewDaysBtn").addEventListener("click", openAllDays);
   document.getElementById("refreshHistoryBtn").addEventListener("click", loadHistory);
 
   document.getElementById("closePopupBtn").addEventListener("click", closePopup);
@@ -631,10 +748,19 @@ function bindEvents() {
     updatePopupSummary();
   });
 
+  document.getElementById("closeDaysBtn").addEventListener("click", closeAllDays);
+  document.getElementById("closeDetailBtn").addEventListener("click", closeDayDetails);
+
   document.getElementById("popupOverlay").addEventListener("click", (e) => {
-    if (e.target.id === "popupOverlay") {
-      closePopup();
-    }
+    if (e.target.id === "popupOverlay") closePopup();
+  });
+
+  document.getElementById("daysOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "daysOverlay") closeAllDays();
+  });
+
+  document.getElementById("detailOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "detailOverlay") closeDayDetails();
   });
 }
 
