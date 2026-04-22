@@ -126,10 +126,17 @@
       </div>
     </section>
 
-    <button id="saveDayBtn" class="save-day-btn" type="button">
-      <span class="save-icon">💾</span>
-      <span>Save Day</span>
-    </button>
+    <div class="top-actions">
+      <button id="saveDayBtn" class="save-day-btn" type="button">
+        <span class="save-icon">💾</span>
+        <span>Save Day</span>
+      </button>
+
+      <button id="viewDaysBtn" class="view-days-btn" type="button">
+        <span>📖</span>
+        <span>View Previous Days</span>
+      </button>
+    </div>
 
     <section class="glass-card history-card">
       <div class="history-top">
@@ -145,7 +152,7 @@
     </section>
   </main>
 
-  <!-- POPUP -->
+  <!-- ADD SALE POPUP -->
   <div id="popupOverlay" class="popup-overlay hidden">
     <div class="popup-card">
       <div class="popup-head">
@@ -169,6 +176,31 @@
       <div class="popup-actions">
         <button id="popupDoneBtn" class="popup-done-btn" type="button">Done</button>
       </div>
+    </div>
+  </div>
+
+  <!-- PREVIOUS DAYS FULL VIEW -->
+  <div id="daysOverlay" class="popup-overlay hidden">
+    <div class="popup-card large-popup">
+      <div class="popup-head">
+        <h4>All Previous Days</h4>
+        <button id="closeDaysBtn" class="close-popup" type="button">✕</button>
+      </div>
+
+      <div id="allDaysList" class="full-days-list"></div>
+    </div>
+  </div>
+
+  <!-- DAY DETAIL VIEW -->
+  <div id="detailOverlay" class="popup-overlay hidden">
+    <div class="popup-card large-popup">
+      <div class="popup-head">
+        <h4 id="detailTitle">Day Details</h4>
+        <button id="closeDetailBtn" class="close-popup" type="button">✕</button>
+      </div>
+
+      <div id="detailTotals" class="detail-totals"></div>
+      <div id="detailEntries" class="detail-entries"></div>
     </div>
   </div>
 
