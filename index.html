@@ -34,57 +34,53 @@
     </section>
 
     <section class="main-grid">
-      <div class="glass-card section-card owner-card">
+      <section class="glass-card owner-card">
         <div class="section-header">
           <div class="owner-badge">🥞</div>
           <h2>Jessica</h2>
         </div>
 
-        <div class="menu-list" id="jessicaMenuList"></div>
+        <div class="menu-list">
+          <button id="btnBuiltPancakes" class="menu-action-btn">Built Pancakes</button>
+          <button id="btnYourWay" class="menu-action-btn">Stack It Your Way</button>
+          <button id="btnBiteStack" class="menu-action-btn">Bite Stack — $5</button>
+          <button id="btnDubaiStrawberries" class="menu-action-btn">Dubai Strawberries — $12</button>
+        </div>
 
         <div class="owner-total-row">
           <span>Jessica Total</span>
           <strong id="jessicaTotal">$0.00</strong>
         </div>
-      </div>
+      </section>
 
-      <div class="glass-card section-card owner-card">
+      <section class="glass-card owner-card">
         <div class="section-header">
           <div class="owner-badge">🍋</div>
           <h2>Janie</h2>
         </div>
 
-        <div class="menu-list" id="janieMenuList"></div>
+        <div class="menu-list">
+          <button id="btnClassic" class="menu-action-btn">Classic Lemonade</button>
+          <button id="btnSpecialty" class="menu-action-btn">Specialty Drinks — $8</button>
+          <button id="btnCreamy" class="menu-action-btn">Creamy Drinks — $8</button>
+          <button id="btnSugarFree" class="menu-action-btn">Sugar Free Drinks — $8</button>
+          <button id="btnRedBull" class="menu-action-btn">Red Bull Drinks — $9</button>
+          <button id="btn64Classic" class="menu-action-btn">64 oz Classic — $12</button>
+          <button id="btn64Specialty" class="menu-action-btn">64 oz Specialty — $15</button>
+        </div>
 
         <div class="owner-total-row">
           <span>Janie Total</span>
           <strong id="janieTotal">$0.00</strong>
         </div>
-      </div>
+      </section>
     </section>
 
     <section class="bottom-grid">
-      <div class="glass-card payments-card">
+      <section class="glass-card payments-card">
         <div class="section-title-row">
           <span class="section-emoji">💳</span>
           <h3>Payments</h3>
-        </div>
-
-        <div class="payment-buttons">
-          <button id="payCashBtn" class="pay-btn active" type="button">
-            <span class="pay-emoji">💵</span>
-            <span>Cash</span>
-          </button>
-
-          <button id="payDigitalBtn" class="pay-btn" type="button">
-            <span class="pay-emoji">📱</span>
-            <span>Digital</span>
-          </button>
-
-          <button id="paySplitBtn" class="pay-btn" type="button">
-            <span class="pay-emoji">↪</span>
-            <span>Split</span>
-          </button>
         </div>
 
         <div class="payment-totals">
@@ -98,9 +94,9 @@
             <div id="digitalTotal">$0.00</div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="glass-card tips-card">
+      <section class="glass-card tips-card">
         <div class="section-title-row">
           <span class="section-emoji">🫙</span>
           <h3>Tips</h3>
@@ -115,7 +111,7 @@
           <div class="small-label">Total Tips</div>
           <div id="tipsTotal">$0.00</div>
         </div>
-      </div>
+      </section>
     </section>
 
     <section class="glass-card summary-card">
@@ -144,10 +140,16 @@
       </div>
     </section>
 
-    <button id="saveDayBtn" class="save-day-btn" type="button">
-      <span class="save-icon">💾</span>
-      <span>Save Day</span>
-    </button>
+    <div class="save-row">
+      <button id="saveDayBtn" class="save-day-btn" type="button">
+        <span class="save-icon">💾</span>
+        <span>Save Day</span>
+      </button>
+
+      <button id="clearDayBtn" class="clear-day-btn" type="button">
+        Clear Day
+      </button>
+    </div>
 
     <section class="glass-card history-card">
       <div class="history-top">
@@ -162,6 +164,60 @@
       <div class="history-list" id="historyList"></div>
     </section>
   </main>
+
+  <!-- MODAL -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-top">
+        <h4 id="modalTitle">Add Sale</h4>
+        <button id="closeModalBtn" class="close-modal-btn" type="button">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="modalStepArea"></div>
+
+        <div class="live-preview">
+          <div class="preview-label">Selected</div>
+          <div id="modalSelectionText">Nothing selected yet</div>
+          <div id="modalPriceText">$0.00</div>
+        </div>
+
+        <div class="payment-block">
+          <div class="block-title">Payment</div>
+          <div class="payment-choice-row">
+            <button type="button" class="payment-choice active" data-pay="cash">Cash</button>
+            <button type="button" class="payment-choice" data-pay="digital">Digital</button>
+            <button type="button" class="payment-choice" data-pay="split">Split</button>
+          </div>
+
+          <div id="splitInputs" class="split-inputs hidden">
+            <div class="split-grid">
+              <label>
+                Cash Part
+                <input type="number" id="splitCashInput" min="0" step="0.01" value="0" />
+              </label>
+              <label>
+                Digital Part
+                <input type="number" id="splitDigitalInput" min="0" step="0.01" value="0" />
+              </label>
+            </div>
+            <div class="split-note">Split must equal the total price.</div>
+          </div>
+        </div>
+
+        <div class="qty-block">
+          <label>
+            Quantity
+            <input type="number" id="qtyInput" min="1" step="1" value="1" />
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button id="confirmAddBtn" class="confirm-add-btn" type="button">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="script.js"></script>
 </body>
