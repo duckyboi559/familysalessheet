@@ -602,6 +602,7 @@ function confirmPopupSale() {
 function updateTotalsUI() {
   const combined = state.jessicaTotal + state.janieTotal;
   state.tips = Number(document.getElementById("tipsInput").value || 0);
+  saveLiveSession();
 
   document.getElementById("jessicaTotal").textContent = money(state.jessicaTotal);
   document.getElementById("janieTotal").textContent = money(state.janieTotal);
