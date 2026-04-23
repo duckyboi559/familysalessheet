@@ -18,7 +18,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
 let liveUnsub = null;
+let historyBound = false;
+let suppressLiveSave = false;
 
 function bindLiveSession(date) {
   if (liveUnsub) liveUnsub();
@@ -27,22 +30,27 @@ function bindLiveSession(date) {
     const d = snap.val();
     if (!d) return;
 
+    suppressLiveSave = true;
+
     state.jessicaTotal = d.jessicaTotal || 0;
     state.janieTotal = d.janieTotal || 0;
     state.cashTotal = d.cashTotal || 0;
     state.digitalTotal = d.digitalTotal || 0;
     state.tips = d.tips || 0;
-    state.entries = d.entries || [];
-    state.lastEntry = d.lastEntry || null;
+    state.entries = Array.isArray(d.entries) ? d.entries : [];
 
-    document.getElementById("tipsInput").value = state.tips || "";
+    const tipsInput = document.getElementById("tipsInput");
+    if (tipsInput) {
+      tipsInput.value = state.tips ? String(state.tips) : "";
+    }
 
     updateTotalsUI();
+    suppressLiveSave = false;
   });
 }
 
 async function saveLiveSession() {
-  if (!state.date) return;
+  if (!state.date || suppressLiveSave) return;
 
   await set(ref(db, `familyLive/${state.date}`), {
     jessicaTotal: state.jessicaTotal,
@@ -50,8 +58,7 @@ async function saveLiveSession() {
     cashTotal: state.cashTotal,
     digitalTotal: state.digitalTotal,
     tips: state.tips,
-    entries: state.entries,
-    lastEntry: state.lastEntry
+    entries: state.entries
   });
 }
 
@@ -179,7 +186,6 @@ const popupState = {
 };
 
 let historyCache = {};
-let historyBound = false;
 
 function money(value) {
   return `$${Number(value || 0).toFixed(2)}`;
@@ -425,13 +431,14 @@ function openClassicLemonade() {
           const baseAmount = 6 + selectedFlavors.length;
           const label = `Classic Lemonade - ${selectedFlavors.join(", ")}`;
 
-          openClassicAddons(label, baseAmount, selectedFlavors);
+          openClassicAddons(label, baseAmount);
         }
       );
     }
   );
 }
-function openClassicAddons(baseLabel, baseAmount, selectedFlavors = []) {
+
+function openClassicAddons(baseLabel, baseAmount) {
   const selectedAddons = [];
 
   document.getElementById("popupStepTitle").textContent = "Choose add-ons if needed.";
@@ -442,7 +449,7 @@ function openClassicAddons(baseLabel, baseAmount, selectedFlavors = []) {
       { name: "Boba +$1", sub: "Add boba" },
       { name: "Make it Creamy +$1", sub: "Add creamy" }
     ],
-    (choice, index) => {
+    (_, index) => {
       const optionButtons = document.querySelectorAll(".popup-option");
 
       if (index === 0) {
@@ -483,6 +490,7 @@ function openClassicAddons(baseLabel, baseAmount, selectedFlavors = []) {
   popupState.selectedAmount = baseAmount;
   updatePopupSummary();
 }
+
 function openJanieList(owner, title, items, price) {
   popupState.owner = owner;
   openPopup(title, "Choose a drink.");
@@ -602,7 +610,6 @@ function confirmPopupSale() {
 function updateTotalsUI() {
   const combined = state.jessicaTotal + state.janieTotal;
   state.tips = Number(document.getElementById("tipsInput").value || 0);
-  saveLiveSession();
 
   document.getElementById("jessicaTotal").textContent = money(state.jessicaTotal);
   document.getElementById("janieTotal").textContent = money(state.janieTotal);
@@ -613,6 +620,8 @@ function updateTotalsUI() {
   document.getElementById("summaryJanie").textContent = money(state.janieTotal);
   document.getElementById("combinedTotal").textContent = money(combined);
   document.getElementById("summaryTips").textContent = money(state.tips);
+
+  saveLiveSession();
 }
 
 async function saveDay() {
@@ -833,9 +842,9 @@ function loadHistory() {
 
 function bindEvents() {
   document.getElementById("datePicker").addEventListener("change", (e) => {
-  state.date = e.target.value;
-  bindLiveSession(state.date);
-});
+    state.date = e.target.value;
+    bindLiveSession(state.date);
+  });
 
   document.getElementById("tipsInput").addEventListener("input", () => {
     updateTotalsUI();
