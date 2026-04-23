@@ -18,6 +18,42 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+let liveUnsub = null;
+
+function bindLiveSession(date) {
+  if (liveUnsub) liveUnsub();
+
+  liveUnsub = onValue(ref(db, `familyLive/${date}`), snap => {
+    const d = snap.val();
+    if (!d) return;
+
+    state.jessicaTotal = d.jessicaTotal || 0;
+    state.janieTotal = d.janieTotal || 0;
+    state.cashTotal = d.cashTotal || 0;
+    state.digitalTotal = d.digitalTotal || 0;
+    state.tips = d.tips || 0;
+    state.entries = d.entries || [];
+    state.lastEntry = d.lastEntry || null;
+
+    document.getElementById("tipsInput").value = state.tips || "";
+
+    updateTotalsUI();
+  });
+}
+
+async function saveLiveSession() {
+  if (!state.date) return;
+
+  await set(ref(db, `familyLive/${state.date}`), {
+    jessicaTotal: state.jessicaTotal,
+    janieTotal: state.janieTotal,
+    cashTotal: state.cashTotal,
+    digitalTotal: state.digitalTotal,
+    tips: state.tips,
+    entries: state.entries,
+    lastEntry: state.lastEntry
+  });
+}
 
 const BUILT_FLAVORS = [
   "Classic #1",
