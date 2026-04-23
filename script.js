@@ -875,6 +875,7 @@ function init() {
   renderMenus();
   bindEvents();
   setDefaultDate();
+  bindLiveSession(state.date);
   updateTotalsUI();
   loadHistory();
 }
