@@ -833,8 +833,9 @@ function loadHistory() {
 
 function bindEvents() {
   document.getElementById("datePicker").addEventListener("change", (e) => {
-    state.date = e.target.value;
-  });
+  state.date = e.target.value;
+  bindLiveSession(state.date);
+});
 
   document.getElementById("tipsInput").addEventListener("input", () => {
     updateTotalsUI();
